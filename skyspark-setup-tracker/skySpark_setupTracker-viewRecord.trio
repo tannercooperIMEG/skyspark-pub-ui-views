@@ -1,0 +1,26 @@
+// ========================================
+// SkySpark Setup Tracker — View Record
+// ========================================
+//
+// DEPLOYMENT INSTRUCTIONS:
+// 1. Copy skySpark_setupTrackerEntry.js  → {var}/pub/ui/
+// 2. Copy skySpark_setupTracker/         → {var}/pub/ui/skySpark_setupTracker/
+//    (copy entire directory, preserving sub-folder structure)
+// 3. Ensure your uiMeta record includes the 'includePub' marker:
+//      dis: "My Application Meta"
+//      uiMeta
+//      includePub
+//      appName: myApp
+// 4. Add the record below to your project via Folio > DB Manager > Add Record.
+// 5. Restart the SkySpark service.
+// 6. Navigate to your app — the "Setup Manager" view will appear in fullscreen.
+//
+// NOTE: This is a demo view with hardcoded sample data.
+//       Future iterations can wire 'data' to live SkySpark queries.
+
+dis: "Setup Manager"
+appName: myApp
+view: skySpark_setupTrackerEntry
+src:
+  view:      { inherit:"js" }
+  jsHandler: { var defVal:"skySpark_setupTrackerHandler" }
