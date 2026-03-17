@@ -1,0 +1,455 @@
+/* actualVsModeledStyles.css
+   All styles scoped under #actualVsModeled-root to avoid
+   colliding with SkySpark's own styles or other pub/ui views. */
+
+/* ── Reset (scoped) ────────────────────────────────────────────────────── */
+#actualVsModeled-root *,
+#actualVsModeled-root *::before,
+#actualVsModeled-root *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+#actualVsModeled-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: #f5f6f8;
+  color: #1a1d23;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ── Toolbar ────────────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: transparent;
+  border-bottom: 1px solid #dde0e5;
+}
+
+#actualVsModeled-root .avm-toolbar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+#actualVsModeled-root .avm-toolbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0c2340;
+  line-height: 1.2;
+}
+
+#actualVsModeled-root .avm-toolbar-subtitle {
+  font-size: 11px;
+  font-weight: 400;
+  color: #6b7280;
+  letter-spacing: 0.1px;
+}
+
+#actualVsModeled-root .avm-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#actualVsModeled-root .avm-toolbar-right select,
+#actualVsModeled-root .avm-toolbar-right button {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border: 1px solid #dde0e5;
+  border-radius: 4px;
+  background: #fff;
+  color: #1a1d23;
+  cursor: pointer;
+}
+
+#actualVsModeled-root .avm-toolbar-right button:hover {
+  background: #f5f6f8;
+}
+
+/* ── View Toggle ────────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-view-toggle {
+  display: inline-flex;
+  border: 1px solid #dde0e5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-left: 8px;
+}
+
+#actualVsModeled-root .avm-view-toggle button {
+  border: none;
+  border-radius: 0;
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+
+#actualVsModeled-root .avm-view-toggle button + button {
+  border-left: 1px solid #dde0e5;
+}
+
+#actualVsModeled-root .avm-view-toggle button.active {
+  background: #0c2340;
+  color: #fff;
+}
+
+#actualVsModeled-root .avm-view-toggle button:hover:not(.active) {
+  background: #f5f6f8;
+  color: #1a1d23;
+}
+
+/* ── Content layout ─────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-content {
+  padding: 16px 20px;
+}
+
+#actualVsModeled-root .avm-row {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+#actualVsModeled-root .avm-row.two-col {
+  grid-template-columns: 1fr 1fr;
+}
+
+#actualVsModeled-root .avm-row.one-col {
+  grid-template-columns: 1fr;
+}
+
+/* ── KPI Cards ──────────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+#actualVsModeled-root .avm-kpi {
+  background: #fff;
+  border: 1px solid #dde0e5;
+  border-radius: 6px;
+  padding: 14px 16px;
+  border-top: 3px solid #0c2340;
+}
+
+#actualVsModeled-root .avm-kpi-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+#actualVsModeled-root .avm-kpi-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0c2340;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+
+#actualVsModeled-root .avm-kpi-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+  margin-left: 2px;
+}
+
+#actualVsModeled-root .avm-kpi-note {
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+#actualVsModeled-root .avm-kpi-note .neg { color: #e74c3c; font-weight: 600; }
+#actualVsModeled-root .avm-kpi-note .pos { color: #27ae60; font-weight: 600; }
+
+/* ── Panel ──────────────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-panel {
+  background: #fff;
+  border: 1px solid #dde0e5;
+  border-radius: 6px;
+}
+
+#actualVsModeled-root .avm-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eceef1;
+}
+
+#actualVsModeled-root .avm-panel-head h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0c2340;
+}
+
+#actualVsModeled-root .avm-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+#actualVsModeled-root .avm-legend span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#actualVsModeled-root .avm-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+#actualVsModeled-root .avm-panel-body {
+  padding: 14px 16px;
+}
+
+/* ── Bar Chart ──────────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-chart {
+  position: relative;
+  height: 190px;
+  display: flex;
+  align-items: flex-end;
+  padding-left: 52px;
+  padding-bottom: 24px;
+  margin-bottom: 4px;
+}
+
+#actualVsModeled-root .avm-chart.tall {
+  height: 210px;
+}
+
+#actualVsModeled-root .avm-chart .y-axis {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 24px;
+  width: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#actualVsModeled-root .avm-chart .y-tick {
+  font-size: 10px;
+  color: #9ca3af;
+  text-align: right;
+  padding-right: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+#actualVsModeled-root .avm-chart .grid {
+  position: absolute;
+  left: 52px;
+  right: 0;
+  top: 0;
+  bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+#actualVsModeled-root .avm-chart .grid-line {
+  height: 1px;
+  background: #f0f1f3;
+}
+
+#actualVsModeled-root .avm-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+#actualVsModeled-root .avm-bar-pair {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  flex: 1;
+  width: 100%;
+  justify-content: center;
+}
+
+#actualVsModeled-root .avm-bar {
+  border-radius: 2px 2px 0 0;
+  min-width: 22px;
+  max-width: 40px;
+  flex: 1;
+  position: relative;
+  cursor: default;
+}
+
+#actualVsModeled-root .avm-bar .tip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1d23;
+  color: #fff;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+#actualVsModeled-root .avm-bar:hover .tip {
+  display: block;
+}
+
+#actualVsModeled-root .x-lbl {
+  position: absolute;
+  bottom: 0;
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+/* Bar color classes */
+#actualVsModeled-root .b-actual { background: #0c2340; }
+#actualVsModeled-root .b-model  { background: #a3b4cc; }
+#actualVsModeled-root .s-actual { background: #2ecc71; }
+#actualVsModeled-root .s-model  { background: #a8e6c1; }
+#actualVsModeled-root .n-bldg   { background: #0c2340; }
+#actualVsModeled-root .n-solar  { background: #2ecc71; }
+
+/* ── Summary Table ──────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+#actualVsModeled-root .avm-tbl th {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: #9ca3af;
+  text-align: right;
+  padding: 6px 12px;
+  border-bottom: 1px solid #eceef1;
+}
+
+#actualVsModeled-root .avm-tbl th:first-child { text-align: left; }
+
+#actualVsModeled-root .avm-tbl td {
+  font-size: 12px;
+  padding: 6px 12px;
+  text-align: right;
+  color: #3c3f47;
+  border-bottom: 1px solid #f5f6f8;
+}
+
+#actualVsModeled-root .avm-tbl td:first-child {
+  text-align: left;
+  font-weight: 600;
+  color: #1a1d23;
+}
+
+#actualVsModeled-root .avm-tbl tr:last-child td { border-bottom: none; }
+
+#actualVsModeled-root .neg { color: #e74c3c; }
+#actualVsModeled-root .pos { color: #27ae60; }
+
+/* ── Raw Data Table ─────────────────────────────────────────────────────── */
+#actualVsModeled-root .avm-raw-tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  min-width: 1200px;
+  table-layout: fixed;
+}
+
+#actualVsModeled-root .avm-raw-tbl col.col-label { width: 240px; }
+
+#actualVsModeled-root .avm-raw-tbl thead th {
+  background: #0c2340;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 14px;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+}
+
+#actualVsModeled-root .avm-raw-tbl thead th:first-child {
+  text-align: left;
+  min-width: 160px;
+}
+
+#actualVsModeled-root .avm-raw-tbl thead th:last-child { border-right: none; }
+
+#actualVsModeled-root .avm-raw-tbl tbody td {
+  padding: 8px 14px;
+  text-align: center;
+  color: #1a1d23;
+  border-bottom: 1px solid #e5e7ea;
+  border-right: 1px solid #eceef1;
+  white-space: nowrap;
+}
+
+#actualVsModeled-root .avm-raw-tbl tbody td:first-child {
+  text-align: left;
+  color: #1a1d23;
+  border-right: 1px solid #e5e7ea;
+}
+
+#actualVsModeled-root .avm-raw-tbl tbody td:last-child { border-right: none; }
+
+#actualVsModeled-root .avm-raw-tbl tbody tr:hover { background: #f8f9fb; }
+
+#actualVsModeled-root .avm-raw-tbl tr.row-total td {
+  background: #1b7a2b;
+  color: #fff;
+  font-weight: 700;
+  border-bottom: 2px solid #156a23;
+  border-right-color: rgba(255, 255, 255, 0.15);
+}
+
+#actualVsModeled-root .avm-raw-tbl tr.row-total:hover td { background: #1b7a2b; }
+
+#actualVsModeled-root .avm-raw-tbl tr.row-net td {
+  font-weight: 700;
+  border-bottom: none;
+}
+
+#actualVsModeled-root .avm-raw-tbl tr.row-net td:first-child {
+  background: #0c2340;
+  color: #fff;
+}
+
+#actualVsModeled-root .avm-raw-tbl td.cell-pos { background: #27ae60; color: #fff; }
+#actualVsModeled-root .avm-raw-tbl td.cell-neg { background: #e74c3c; color: #fff; }
+
+#actualVsModeled-root .avm-raw-scroll { overflow-x: auto; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  #actualVsModeled-root .avm-row.two-col { grid-template-columns: 1fr; }
+  #actualVsModeled-root .avm-kpi-row     { grid-template-columns: repeat(2, 1fr); }
+}
