@@ -1,0 +1,22 @@
+// Event Annotations Plot - View Record Configuration
+//
+// This file defines the SkySpark view record for the Event Annotations Plot
+//
+// INSTALLATION INSTRUCTIONS:
+// 1. Copy eventAnnotationsPlotEntry.js to {var}/pub/ui/
+// 2. Ensure your uiMeta record includes the 'includePub' marker:
+//    dis: "My Application Meta"
+//    uiMeta
+//    includePub
+//    appName: myApp
+// 3. Add this view record to your project (via Folio or Apps Builder)
+// 4. Restart SkySpark service
+// 5. Navigate to your app and open this view
+
+dis: "Event Annotations Plot"
+appName: myApp
+view: eventAnnotationsPlot
+src:
+  view:      { inherit:"js" }
+  jsHandler: { var defVal:"eventAnnotationsPlotHandler" }
+  data:      { expr:"readAll(site).keepCols([\"dis\"])" }
