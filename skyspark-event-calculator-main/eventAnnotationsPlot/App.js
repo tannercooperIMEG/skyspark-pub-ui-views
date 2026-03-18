@@ -124,6 +124,25 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
   };
   btnGroup.appendChild(sidebarBtn);
 
+  // Timeline toggle button
+  var timelineBtn = document.createElement('button');
+  timelineBtn.title = state.timelineHidden ? 'Show event timeline' : 'Hide event timeline';
+  timelineBtn.innerHTML = state.timelineHidden
+    ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="5" height="2.5" rx="0.5"/><rect x="4" y="7" width="7" height="2.5" rx="0.5"/><rect x="8" y="3" width="5" height="2.5" rx="0.5"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="1" y1="3" x2="13" y2="3"/><rect x="1" y="5" width="5" height="2" rx="0.5" opacity="0.3"/><rect x="4" y="8" width="7" height="2" rx="0.5" opacity="0.3"/><line x1="1" y1="12" x2="13" y2="12"/></svg>';
+  timelineBtn.style.cssText = 'width:32px;height:32px;border:1px solid #dee2e6;border-radius:6px;background:white;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:#6c757d;box-shadow:0 1px 3px rgba(0,0,0,0.08);';
+  timelineBtn.onmouseover = function() { timelineBtn.style.backgroundColor = '#e8f4fd'; timelineBtn.style.color = '#1565c0'; timelineBtn.style.borderColor = '#1565c0'; };
+  timelineBtn.onmouseout = function() { timelineBtn.style.backgroundColor = 'white'; timelineBtn.style.color = '#6c757d'; timelineBtn.style.borderColor = '#dee2e6'; };
+  timelineBtn.onclick = function() {
+    state.timelineHidden = !state.timelineHidden;
+    timelineBtn.title = state.timelineHidden ? 'Show event timeline' : 'Hide event timeline';
+    timelineBtn.innerHTML = state.timelineHidden
+      ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="5" height="2.5" rx="0.5"/><rect x="4" y="7" width="7" height="2.5" rx="0.5"/><rect x="8" y="3" width="5" height="2.5" rx="0.5"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="1" y1="3" x2="13" y2="3"/><rect x="1" y="5" width="5" height="2" rx="0.5" opacity="0.3"/><rect x="4" y="8" width="7" height="2" rx="0.5" opacity="0.3"/><line x1="1" y1="12" x2="13" y2="12"/></svg>';
+    timelineContainer.style.display = state.timelineHidden ? 'none' : 'block';
+  };
+  btnGroup.appendChild(timelineBtn);
+
   // Expand button (top-right of chart)
   var expandBtn = document.createElement('button');
   expandBtn.title = 'Expand chart';
@@ -154,6 +173,11 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
   var timelineContainer = document.createElement('div');
   timelineContainer.style.cssText = 'width:100%;height:' + timelineMinH + 'px;max-height:' + timelineMaxH + 'px;margin-top:4px;position:relative;overflow-y:auto;overflow-x:hidden;flex-shrink:0;';
   chartContainer.appendChild(timelineContainer);
+
+  // Apply initial timeline state
+  if (state.timelineHidden) {
+    timelineContainer.style.display = 'none';
+  }
 
   // Events sidebar - responsive height matching chart
   var eventsContainer = document.createElement('div');

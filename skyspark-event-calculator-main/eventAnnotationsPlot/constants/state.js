@@ -39,6 +39,7 @@ window.EventAnnotationsPlot.state = {
   // ── Filter panel UI state ──────────────────────────────────────────
   filterPanelCollapsed: false,
   filterSidebarHidden: false,
+  timelineHidden: false,
 
   // ── Active utility (single-select) ──────────────────────────────
   activeUtility: 'Electric',
