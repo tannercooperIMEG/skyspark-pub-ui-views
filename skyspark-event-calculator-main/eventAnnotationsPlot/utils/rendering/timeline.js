@@ -34,7 +34,7 @@ window.EventAnnotationsPlot.timeline.detectTimelineClick = function(mouseX, mous
   var bottomPad = Math.round(2 + 2 * s);
   var laneGap = 2;
   var usableHeight = cssHeight - topPad - bottomPad;
-  var maxLaneHeight = Math.round(16 + 6 * s);
+  var maxLaneHeight = Math.round(24 + 8 * s);
   var laneHeight = Math.min((usableHeight - laneGap * (totalLanes - 1)) / totalLanes, maxLaneHeight);
 
   for (var i = 0; i < events.length; i++) {
@@ -160,7 +160,7 @@ window.EventAnnotationsPlot.timeline.drawTimeline = function(timelineCanvas, cha
   var bottomPad = Math.round(2 + 2 * s);
   var laneGap = 2;
   var usableHeight = cssHeight - topPad - bottomPad;
-  var maxLaneHeight = Math.round(16 + 6 * s);
+  var maxLaneHeight = Math.round(24 + 8 * s);
   var laneHeight = Math.min((usableHeight - laneGap * (totalLanes - 1)) / totalLanes, maxLaneHeight);
   var blockRadius = 3;
 
@@ -260,9 +260,9 @@ window.EventAnnotationsPlot.timeline.drawTimeline = function(timelineCanvas, cha
     }
 
     // ── Label ────────────────────────────────────────────────────
-    var minBlockForLabel = Math.round(40 + 10 * s);
+    var minBlockForLabel = Math.round(30 + 10 * s);
     if (blockWidth > minBlockForLabel) {
-      var labelFontSize = Math.round((8 + 2 * s) * dpr);
+      var labelFontSize = Math.round((9 + 3 * s) * dpr);
       ctx.fillStyle = '#fff';
       ctx.font = '600 ' + labelFontSize + 'px -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
       ctx.textAlign = 'left';
