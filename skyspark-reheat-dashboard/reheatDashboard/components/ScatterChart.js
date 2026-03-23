@@ -17,12 +17,12 @@ window.reheatDashboard = window.reheatDashboard || {};
   NS.ScatterChart = {};
 
   NS.ScatterChart.render = function (svgEl, tipEl, vavData, selectedId, onSelect) {
-    // Read size from parent container to avoid feedback loops
+    // Use parent's layout size (stable, not affected by SVG content)
     var parent = svgEl.parentElement;
-    var rect = parent ? parent.getBoundingClientRect() : svgEl.getBoundingClientRect();
-    var W = Math.max(rect.width || 600, 380);
-    var H = Math.max(rect.height || 420, 320);
+    var W = Math.max((parent ? parent.clientWidth : 600) - 0, 380);
+    var H = Math.max((parent ? parent.clientHeight : 420) - 0, 320);
     svgEl.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     svgEl.innerHTML = '';
 
     var plotW = W - M.left - M.right;
