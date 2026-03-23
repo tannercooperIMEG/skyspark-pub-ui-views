@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAV Reheat Diagnostic — Standalone Demo</title>
+<link rel="stylesheet" href="reheatDashboard/reheatDashboardStyles.css">
+</head>
+<body>
+<!--
+  Standalone demo page for local development/testing.
+  In production, the SkySpark pub UI entry file (reheatDashboardEntry.js)
+  loads the handler dynamically and SkySpark calls onUpdate().
+  This page simulates that lifecycle with a mock view/elem.
+-->
+<div id="reheatDashboard"></div>
+<script src="reheatDashboard/reheatDashboardHandler.js"></script>
+<script>
+(function () {
+  // Mock SkySpark view object for standalone testing
+  var mockView = {
+    removeAll: function () {
+      var container = document.getElementById('reheatDashboard');
+      container.innerHTML = '';
+    },
+    session: function () {
+      return {
+        attestKey: function () { return 'demo-attest-key'; },
+        proj: function () { return { name: function () { return 'demo'; } }; }
+      };
+    }
+  };
+
+  var mockElem = document.getElementById('reheatDashboard');
+
+  // Simulate SkySpark calling onUpdate
+  if (window.reheatDashboardApp && typeof window.reheatDashboardApp.onUpdate === 'function') {
+    window.reheatDashboardApp.onUpdate({ view: mockView, elem: mockElem });
+  } else {
+    console.error('[demo] reheatDashboardApp not loaded');
+  }
+})();
+</script>
+</body>
+</html>
