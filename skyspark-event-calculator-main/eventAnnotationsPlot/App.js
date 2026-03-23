@@ -78,7 +78,7 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
   var chartH = Math.max(400, Math.min(Math.round(window.innerHeight * 0.65), 800));
   var chartPad = Math.round(12 + 8 * rs.vhScale);
   var chartContainer = document.createElement('div');
-  chartContainer.style.cssText = 'flex:2;min-width:500px;min-height:400px;height:' + chartH + 'px;box-sizing:border-box;background:white;padding:' + chartPad + 'px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);position:relative;display:flex;flex-direction:column;';
+  chartContainer.style.cssText = 'flex:2;min-width:500px;min-height:400px;height:' + chartH + 'px;box-sizing:border-box;background:white;padding:' + chartPad + 'px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);position:relative;display:flex;flex-direction:column;transition:flex 0.2s ease;';
   layoutContainer.appendChild(chartContainer);
 
   // Utility toggle
@@ -88,11 +88,16 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
   });
   chartContainer.appendChild(utilityToggleBar);
 
+  // Top-right button group (expand only)
+  var btnGroup = document.createElement('div');
+  btnGroup.style.cssText = 'position:absolute;top:12px;right:12px;z-index:20;display:flex;gap:6px;';
+  chartContainer.appendChild(btnGroup);
+
   // Expand button (top-right of chart)
   var expandBtn = document.createElement('button');
   expandBtn.title = 'Expand chart';
   expandBtn.textContent = '\u26F6';
-  expandBtn.style.cssText = 'position:absolute;top:12px;right:12px;z-index:20;width:32px;height:32px;border:1px solid #dee2e6;border-radius:6px;background:white;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:#6c757d;box-shadow:0 1px 3px rgba(0,0,0,0.08);';
+  expandBtn.style.cssText = 'width:32px;height:32px;border:1px solid #dee2e6;border-radius:6px;background:white;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;color:#6c757d;box-shadow:0 1px 3px rgba(0,0,0,0.08);';
   expandBtn.onmouseover = function() { expandBtn.style.backgroundColor = '#e8f4fd'; expandBtn.style.color = '#1565c0'; expandBtn.style.borderColor = '#1565c0'; };
   expandBtn.onmouseout = function() { expandBtn.style.backgroundColor = 'white'; expandBtn.style.color = '#6c757d'; expandBtn.style.borderColor = '#dee2e6'; };
   expandBtn.onclick = function() {
@@ -100,7 +105,7 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
       window.EventAnnotationsPlot.expandView.open(state, interactions, annotations, timeline, chart);
     }
   };
-  chartContainer.appendChild(expandBtn);
+  btnGroup.appendChild(expandBtn);
 
   // Canvas wrapper - flex-grow to fill available space
   var canvasMinH = Math.round(200 + 100 * rs.vhScale);
@@ -112,16 +117,100 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
   canvas.id = 'eventAnnotationsChart';
   canvasWrapper.appendChild(canvas);
 
-  // Timeline container - responsive height
-  var timelineH = Math.round(40 + 40 * rs.vhScale);
+  // Timeline wrapper with header bar and collapsible content
+  var timelineMinH = Math.round(60 + 60 * rs.vhScale);
+  var timelineMaxH = Math.round(160 + 80 * rs.vhScale);
+  var timelineWrapper = document.createElement('div');
+  timelineWrapper.style.cssText = 'width:100%;margin-top:4px;flex-shrink:0;';
+  chartContainer.appendChild(timelineWrapper);
+
+  // Timeline header bar with label and close button
+  var timelineHeader = document.createElement('div');
+  timelineHeader.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:2px 4px;cursor:pointer;';
+  timelineWrapper.appendChild(timelineHeader);
+
+  var timelineLabel = document.createElement('span');
+  timelineLabel.textContent = 'Event Timeline';
+  timelineLabel.style.cssText = 'font-size:10px;font-weight:600;color:#adb5bd;text-transform:uppercase;letter-spacing:0.5px;';
+  timelineHeader.appendChild(timelineLabel);
+
+  var timelineToggleBtn = document.createElement('button');
+  timelineToggleBtn.style.cssText = 'border:none;background:transparent;cursor:pointer;font-size:11px;color:#adb5bd;padding:2px 6px;transition:color 0.2s;';
+  timelineToggleBtn.onmouseover = function() { timelineToggleBtn.style.color = '#1565c0'; };
+  timelineToggleBtn.onmouseout = function() { timelineToggleBtn.style.color = '#adb5bd'; };
+  timelineHeader.appendChild(timelineToggleBtn);
+
+  // Timeline content container
   var timelineContainer = document.createElement('div');
-  timelineContainer.style.cssText = 'width:100%;height:' + timelineH + 'px;margin-top:4px;position:relative;overflow:hidden;flex-shrink:0;';
-  chartContainer.appendChild(timelineContainer);
+  timelineContainer.style.cssText = 'width:100%;height:' + timelineMinH + 'px;max-height:' + timelineMaxH + 'px;position:relative;overflow-y:auto;overflow-x:hidden;';
+  timelineWrapper.appendChild(timelineContainer);
+
+  // Toggle logic
+  function applyTimelineToggle() {
+    timelineContainer.style.display = state.timelineHidden ? 'none' : 'block';
+    timelineToggleBtn.textContent = state.timelineHidden ? 'Show' : 'Hide';
+  }
+  applyTimelineToggle();
+
+  timelineHeader.onclick = function() {
+    state.timelineHidden = !state.timelineHidden;
+    applyTimelineToggle();
+    // Redraw overlays after toggling so chart resizes correctly
+    setTimeout(function() {
+      if (state.chartInstance) state.chartInstance.resize();
+      if (state._syncOverlaySize) state._syncOverlaySize();
+      var currentEvents = state.currentEvents || [];
+      if (state.chartInstance && state.overlayCanvas) {
+        annotations.drawAnnotationOverlay(state.chartInstance, state.overlayCanvas, currentEvents);
+      }
+      if (!state.timelineHidden && state.chartInstance && state.timelineCanvas) {
+        if (state._resizeTimelineForEvents) state._resizeTimelineForEvents(currentEvents);
+        timeline.drawTimeline(state.timelineCanvas, state.chartInstance, currentEvents);
+      }
+    }, 50);
+  };
 
   // Events sidebar - responsive height matching chart
   var eventsContainer = document.createElement('div');
   eventsContainer.style.cssText = 'flex:1;min-width:280px;max-width:400px;height:' + chartH + 'px;display:flex;flex-direction:column;position:relative;z-index:10;';
   layoutContainer.appendChild(eventsContainer);
+
+  // Sidebar re-show button (appears on chart edge when sidebar is hidden)
+  var showSidebarBtn = document.createElement('button');
+  showSidebarBtn.title = 'Show event filter panel';
+  showSidebarBtn.textContent = 'Event Filter \u25B6';
+  showSidebarBtn.style.cssText = 'position:absolute;top:50%;right:-1px;transform:translateY(-50%);z-index:15;padding:8px 6px;border:1px solid #dee2e6;border-right:none;border-radius:6px 0 0 6px;background:white;cursor:pointer;font-size:10px;font-weight:600;color:#6c757d;box-shadow:-2px 0 4px rgba(0,0,0,0.08);transition:all 0.2s;writing-mode:vertical-lr;letter-spacing:0.5px;';
+  showSidebarBtn.onmouseover = function() { showSidebarBtn.style.backgroundColor = '#e8f4fd'; showSidebarBtn.style.color = '#1565c0'; showSidebarBtn.style.borderColor = '#1565c0'; };
+  showSidebarBtn.onmouseout = function() { showSidebarBtn.style.backgroundColor = 'white'; showSidebarBtn.style.color = '#6c757d'; showSidebarBtn.style.borderColor = '#dee2e6'; };
+  showSidebarBtn.onclick = function() {
+    state.filterSidebarHidden = false;
+    eventsContainer.style.display = 'flex';
+    showSidebarBtn.style.display = 'none';
+    setTimeout(function() {
+      if (state.chartInstance) state.chartInstance.resize();
+      if (state._syncOverlaySize) state._syncOverlaySize();
+      var currentEvents = state.currentEvents || [];
+      if (state._resizeTimelineForEvents) state._resizeTimelineForEvents(currentEvents);
+      if (state.chartInstance && state.overlayCanvas) {
+        annotations.drawAnnotationOverlay(state.chartInstance, state.overlayCanvas, currentEvents);
+      }
+      if (state.chartInstance && state.timelineCanvas) {
+        timeline.drawTimeline(state.timelineCanvas, state.chartInstance, currentEvents);
+      }
+    }, 50);
+  };
+  chartContainer.appendChild(showSidebarBtn);
+
+  // Store ref so interactions.js can toggle it when hiding the sidebar
+  state._showSidebarBtn = showSidebarBtn;
+
+  // Apply initial sidebar state (must be after eventsContainer is created)
+  if (state.filterSidebarHidden) {
+    eventsContainer.style.display = 'none';
+    showSidebarBtn.style.display = 'block';
+  } else {
+    showSidebarBtn.style.display = 'none';
+  }
 
   // Loading message
   var loadingMsg = document.createElement('div');
@@ -191,6 +280,25 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
     }
     updateTimelineSize();
 
+    // Resize timeline container to fit event lanes
+    function resizeTimelineForEvents(evts) {
+      if (!evts || evts.length === 0) {
+        timelineContainer.style.height = timelineMinH + 'px';
+        return;
+      }
+      var laneInfo = timeline.calculateEventLanes(evts);
+      var totalLanes = Math.max(laneInfo.totalLanes, 1);
+      var sc = (state.responsiveScaling || {}).vhScale || 1.0;
+      var laneH = Math.round(20 + 8 * sc);  // desired height per lane
+      var pad = Math.round(4 + 4 * sc);
+      var gap = 2;
+      var needed = totalLanes * laneH + (totalLanes - 1) * gap + pad * 2;
+      var h = Math.max(timelineMinH, Math.min(needed, timelineMaxH));
+      timelineContainer.style.height = h + 'px';
+      updateTimelineSize();
+    }
+    state._resizeTimelineForEvents = resizeTimelineForEvents;
+
     var events = [];
     timeline.drawTimeline(timelineCanvas, state.chartInstance, events);
     annotations.drawAnnotationOverlay(state.chartInstance, overlayCanvas, events);
@@ -200,10 +308,9 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
       window.EventAnnotationsPlot.computeScaling();
       var newScale = state.responsiveScaling.vhScale;
       var newChartH = Math.max(400, Math.min(Math.round(window.innerHeight * 0.65), 800));
-      var newTimelineH = Math.round(40 + 40 * newScale);
       chartContainer.style.height = newChartH + 'px';
       eventsContainer.style.height = newChartH + 'px';
-      timelineContainer.style.height = newTimelineH + 'px';
+      resizeTimelineForEvents(state.currentEvents || []);
       syncOverlaySize();
       updateTimelineSize();
       var currentEvents = state.currentEvents || [];
@@ -368,7 +475,7 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
       state.refs.timeSeriesData = activeData;
 
       syncOverlaySize();
-      updateTimelineSize();
+      resizeTimelineForEvents(currentEvents);
       annotations.drawAnnotationOverlay(state.chartInstance, state.overlayCanvas, currentEvents);
       timeline.drawTimeline(state.refs.timelineCanvas, state.chartInstance, currentEvents);
     }
@@ -551,7 +658,7 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
 
         // Redraw overlays
         syncOverlaySize();
-        updateTimelineSize();
+        resizeTimelineForEvents(chartEvents);
         annotations.drawAnnotationOverlay(state.chartInstance, state.overlayCanvas, chartEvents);
         timeline.drawTimeline(state.refs.timelineCanvas, state.chartInstance, chartEvents);
 
