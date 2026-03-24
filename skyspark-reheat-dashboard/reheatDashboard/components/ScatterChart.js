@@ -20,7 +20,7 @@ window.reheatDashboard = window.reheatDashboard || {};
 
   NS.ScatterChart.render = function (svgEl, tipEl, vavData, selectedId, onSelect) {
     svgEl.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-    svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    svgEl.setAttribute('preserveAspectRatio', 'none');
     svgEl.innerHTML = '';
 
     var plotW = W - M.left - M.right;
