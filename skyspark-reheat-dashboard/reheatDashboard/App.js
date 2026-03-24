@@ -9,7 +9,7 @@ window.reheatDashboard = window.reheatDashboard || {};
   function buildDOM(container) {
     container.innerHTML = [
       '<div class="page-header">',
-      '  <h1>VAV Reheat Diagnostic</h1>',
+      '  <h1>Reheat KPI Scatter Plot</h1>',
       '</div>',
       '<div class="kpi-row" id="rdKpiRow"></div>',
       '<div class="main-body">',
