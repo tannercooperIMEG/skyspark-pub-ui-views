@@ -8,6 +8,7 @@ var reheatDashboardHandler = {};
 
 (function () {
   var BASE = '/pub/ui/reheatDashboard/';
+  var BUST = '?_v=' + Date.now();
   var modules = [
     'constants/fields.js',
     'utils/classify.js',
@@ -28,7 +29,7 @@ var reheatDashboardHandler = {};
     function next() {
       if (i >= modules.length) { cb(); return; }
       var s = document.createElement('script');
-      s.src = BASE + modules[i];
+      s.src = BASE + modules[i] + BUST;
       s.async = false;
       s.onload = function () { i++; next(); };
       s.onerror = function () {

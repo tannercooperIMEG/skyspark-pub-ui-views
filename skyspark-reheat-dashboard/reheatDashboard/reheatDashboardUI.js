@@ -16,7 +16,7 @@ window.reheatDashboard = window.reheatDashboard || {};
     var link  = document.createElement('link');
     link.id   = CSS_ID;
     link.rel  = 'stylesheet';
-    link.href = CSS_PATH;
+    link.href = CSS_PATH + '?_v=' + Date.now();
     document.head.appendChild(link);
   }
 
