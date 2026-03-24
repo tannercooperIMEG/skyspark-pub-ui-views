@@ -275,13 +275,19 @@
 #reheatDashboard .icon-btn:hover { color: #333; border-color: #999; }
 
 /* ── Fullscreen chart card ── */
-#reheatDashboard .card:fullscreen,
-#reheatDashboard .card:-webkit-full-screen {
+#rdChartCard:fullscreen,
+#rdChartCard:-webkit-full-screen {
   background: #fff;
   border: none;
   border-radius: 0;
+  display: flex;
+  flex-direction: column;
 }
-#reheatDashboard .card:fullscreen .chart-inner,
-#reheatDashboard .card:-webkit-full-screen .chart-inner {
+#rdChartCard:fullscreen .chart-inner,
+#rdChartCard:-webkit-full-screen .chart-inner {
   flex: 1;
+}
+#rdChartCard:fullscreen .rd-tooltip,
+#rdChartCard:-webkit-full-screen .rd-tooltip {
+  z-index: 2147483647;
 }

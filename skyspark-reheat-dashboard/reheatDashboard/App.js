@@ -45,7 +45,7 @@ window.reheatDashboard = window.reheatDashboard || {};
       '      </table>',
       '    </div>',
       '  </div>',
-      '  <div class="card">',
+      '  <div class="card" id="rdChartCard">',
       '    <div class="card-header">',
       '      <h2>Reheat KPI Scatter Plot</h2>',
       '      <div class="legend-row" style="margin:0">',
@@ -64,9 +64,9 @@ window.reheatDashboard = window.reheatDashboard || {};
       '    <div class="chart-inner">',
       '      <svg class="rd-scatter" style="cursor:crosshair"></svg>',
       '    </div>',
+      '    <div class="rd-tooltip"></div>',
       '  </div>',
-      '</div>',
-      '<div class="rd-tooltip"></div>'
+      '</div>'
     ].join('\n');
   }
 
@@ -152,11 +152,17 @@ window.reheatDashboard = window.reheatDashboard || {};
       mainBody.style.gridTemplateColumns = '340px 1fr';
     });
 
-    // Fullscreen scatter plot
-    var chartCard = container.querySelectorAll('.card')[1];
-    container.querySelector('#rdFullscreen').addEventListener('click', function () {
-      if (chartCard.requestFullscreen) chartCard.requestFullscreen();
-      else if (chartCard.webkitRequestFullscreen) chartCard.webkitRequestFullscreen();
+    // Fullscreen scatter plot — toggle enter/exit
+    var chartCard = container.querySelector('#rdChartCard');
+    var fsBtn = container.querySelector('#rdFullscreen');
+    fsBtn.addEventListener('click', function () {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } else {
+        if (chartCard.requestFullscreen) chartCard.requestFullscreen();
+        else if (chartCard.webkitRequestFullscreen) chartCard.webkitRequestFullscreen();
+      }
     });
 
     // Initial render
