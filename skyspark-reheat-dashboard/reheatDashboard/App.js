@@ -9,22 +9,19 @@ window.reheatDashboard = window.reheatDashboard || {};
   function buildDOM(container) {
     container.innerHTML = [
       '<div class="page-header">',
-      '  <h1>VAV Reheat Diagnostic</h1>',
-      '  <div class="meta">',
-      '    <span>VAV Air Terminal Units</span>',
-      '    <span class="meta-sep">&middot;</span>',
-      '    <span>Daily averages</span>',
-      '    <span class="meta-sep">&middot;</span>',
-      '    <span>Building Analytics</span>',
-      '    <span class="date-badge" style="margin-left:auto">Current Period</span>',
-      '  </div>',
+      '  <h1>Reheat KPI Scatter Plot</h1>',
       '</div>',
       '<div class="kpi-row" id="rdKpiRow"></div>',
       '<div class="main-body">',
-      '  <div class="card">',
+      '  <div class="card" id="rdTableCard">',
       '    <div class="card-header">',
       '      <h2>VAV Units</h2>',
-      '      <span class="subtitle" id="rdRowCount"></span>',
+      '      <div style="display:flex;align-items:center;gap:8px">',
+      '        <span class="subtitle" id="rdRowCount"></span>',
+      '        <button class="icon-btn" id="rdTableClose" title="Hide table">',
+      '          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+      '        </button>',
+      '      </div>',
       '    </div>',
       '    <div class="table-search">',
       '      <div class="search-wrap">',
@@ -48,22 +45,28 @@ window.reheatDashboard = window.reheatDashboard || {};
       '      </table>',
       '    </div>',
       '  </div>',
-      '  <div class="card">',
+      '  <div class="card" id="rdChartCard">',
       '    <div class="card-header">',
-      '      <h2>KPI Scatter &mdash; Avg Discharge Air Temp vs. Avg Reheat Valve Output</h2>',
+      '      <h2>Reheat KPI Scatter Plot</h2>',
       '      <div class="legend-row" style="margin:0">',
       '        <span class="leg"><span class="leg-dot" style="background:#3b82f6"></span>Normal</span>',
       '        <span class="leg"><span class="leg-dot" style="background:#ef4444"></span>Faulty Reheat</span>',
       '        <span class="leg"><span class="leg-dot" style="background:#8b5cf6"></span>Leaking Valve</span>',
       '        <span class="leg"><span class="leg-dot" style="background:#f59e0b;border:1.5px solid #b45309"></span>Selected</span>',
+      '        <button class="icon-btn" id="rdShowTable" title="Show table" style="display:none;margin-left:4px">',
+      '          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
+      '        </button>',
+      '        <button class="icon-btn" id="rdFullscreen" title="Full screen">',
+      '          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+      '        </button>',
       '      </div>',
       '    </div>',
       '    <div class="chart-inner">',
       '      <svg class="rd-scatter" style="cursor:crosshair"></svg>',
       '    </div>',
+      '    <div class="rd-tooltip"></div>',
       '  </div>',
-      '</div>',
-      '<div class="rd-tooltip"></div>'
+      '</div>'
     ].join('\n');
   }
 
@@ -76,10 +79,17 @@ window.reheatDashboard = window.reheatDashboard || {};
     var svgEl = container.querySelector('.rd-scatter');
     var tipEl = container.querySelector('.rd-tooltip');
 
-    // Tooltip tracking on mousemove
+    // Tooltip tracking on mousemove — clamp to viewport
     svgEl.addEventListener('mousemove', function (e) {
-      tipEl.style.left = (e.clientX + 16) + 'px';
-      tipEl.style.top = (e.clientY - 12) + 'px';
+      var tw = tipEl.offsetWidth || 180;
+      var th = tipEl.offsetHeight || 80;
+      var lx = e.clientX + 16;
+      var ly = e.clientY - 12;
+      if (lx + tw > window.innerWidth - 8) lx = e.clientX - tw - 16;
+      if (ly + th > window.innerHeight - 8) ly = window.innerHeight - th - 8;
+      if (ly < 8) ly = 8;
+      tipEl.style.left = lx + 'px';
+      tipEl.style.top = ly + 'px';
     });
 
     // Render KPIs (static)
@@ -127,9 +137,32 @@ window.reheatDashboard = window.reheatDashboard || {};
       });
     }
 
-    // Resize handler
-    window.addEventListener('resize', function () {
-      NS.ScatterChart.render(svgEl, tipEl, vavData, state.selectedId, selectVAV);
+    // Hide / show table panel
+    var tableCard = container.querySelector('#rdTableCard');
+    var showTableBtn = container.querySelector('#rdShowTable');
+    var mainBody = container.querySelector('.main-body');
+    container.querySelector('#rdTableClose').addEventListener('click', function () {
+      tableCard.style.display = 'none';
+      showTableBtn.style.display = '';
+      mainBody.style.gridTemplateColumns = '1fr';
+    });
+    showTableBtn.addEventListener('click', function () {
+      tableCard.style.display = '';
+      showTableBtn.style.display = 'none';
+      mainBody.style.gridTemplateColumns = '340px 1fr';
+    });
+
+    // Fullscreen scatter plot — toggle enter/exit
+    var chartCard = container.querySelector('#rdChartCard');
+    var fsBtn = container.querySelector('#rdFullscreen');
+    fsBtn.addEventListener('click', function () {
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } else {
+        if (chartCard.requestFullscreen) chartCard.requestFullscreen();
+        else if (chartCard.webkitRequestFullscreen) chartCard.webkitRequestFullscreen();
+      }
     });
 
     // Initial render
