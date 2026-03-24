@@ -258,3 +258,30 @@
 #reheatDashboard .rd-tooltip .flag-leaking { color: #7c3aed; }
 #reheatDashboard .rd-tooltip .flag-ok      { color: #065f46; }
 #reheatDashboard .rd-tooltip .flag-watch   { color: #92400e; }
+
+/* ── Icon buttons ── */
+#reheatDashboard .icon-btn {
+  background: none;
+  border: 1px solid #d0d4d8;
+  border-radius: 4px;
+  padding: 3px 5px;
+  cursor: pointer;
+  color: #8a8f96;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.1s, border-color 0.1s;
+}
+#reheatDashboard .icon-btn:hover { color: #333; border-color: #999; }
+
+/* ── Fullscreen chart card ── */
+#reheatDashboard .card:fullscreen,
+#reheatDashboard .card:-webkit-full-screen {
+  background: #fff;
+  border: none;
+  border-radius: 0;
+}
+#reheatDashboard .card:fullscreen .chart-inner,
+#reheatDashboard .card:-webkit-full-screen .chart-inner {
+  flex: 1;
+}

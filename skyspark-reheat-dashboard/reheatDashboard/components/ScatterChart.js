@@ -138,8 +138,15 @@ window.reheatDashboard = window.reheatDashboard || {};
           '<div class="tip-row"><span>Avg Reheat</span><span class="tip-val">' + d.rh + '%</span></div>' +
           '<div class="tip-flag ' + tipCls[d.flag] + '">' + tipLabels[d.flag] + '</div>';
         tipEl.classList.add('visible');
-        tipEl.style.left = (e.clientX + 16) + 'px';
-        tipEl.style.top = (e.clientY - 12) + 'px';
+        var tw = tipEl.offsetWidth || 180;
+        var th = tipEl.offsetHeight || 80;
+        var lx = e.clientX + 16;
+        var ly = e.clientY - 12;
+        if (lx + tw > window.innerWidth - 8) lx = e.clientX - tw - 16;
+        if (ly + th > window.innerHeight - 8) ly = window.innerHeight - th - 8;
+        if (ly < 8) ly = 8;
+        tipEl.style.left = lx + 'px';
+        tipEl.style.top = ly + 'px';
       });
       c.addEventListener('mouseleave', function () { tipEl.classList.remove('visible'); });
       c.addEventListener('click', function () { onSelect(d.id); });
