@@ -8,8 +8,8 @@ window.reheatDashboard = window.reheatDashboard || {};
   var dotFill = NS.svg.dotFill;
   var dotStroke = NS.svg.dotStroke;
 
-  // Fixed coordinate system — SVG scales to fill container via CSS
-  var W = 800, H = 500;
+  // Fixed coordinate system — wider aspect ratio to match container shape
+  var W = 1200, H = 420;
   var M = { top: 20, right: 32, bottom: 44, left: 52 };
   var XD = [50, 100], YD = [0, 100];
 
