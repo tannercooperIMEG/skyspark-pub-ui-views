@@ -27,39 +27,70 @@ window.reheatDashboard = window.reheatDashboard || {};
   function tryReadVar(view, varName) {
     try {
       var val = view.var(varName);
+      console.log('[reheatDashboard] tryReadVar("' + varName + '") raw val:', val);
+      console.log('[reheatDashboard]   typeof:', typeof val);
+      console.log('[reheatDashboard]   constructor:', val && val.constructor && val.constructor.name);
+      console.log('[reheatDashboard]   hasToAxon:', typeof (val && val.toAxon) === 'function');
+      console.log('[reheatDashboard]   hasToStr:', typeof (val && val.toStr) === 'function');
+      if (val && typeof val === 'object') {
+        try { console.log('[reheatDashboard]   keys:', Object.keys(val)); } catch (e) {}
+        try { console.log('[reheatDashboard]   JSON:', JSON.stringify(val)); } catch (e) { console.log('[reheatDashboard]   JSON: [unserializable]'); }
+      }
       if (val == null) return null;
-      if (typeof val.toAxon === 'function') return val.toAxon();
+      if (typeof val.toAxon === 'function') {
+        var axonResult = val.toAxon();
+        console.log('[reheatDashboard]   toAxon() →', axonResult);
+        return axonResult;
+      }
       var s;
       try { s = typeof val.toStr === 'function' ? val.toStr() : String(val); }
       catch (e) { s = String(val); }
+      console.log('[reheatDashboard]   stringified →', JSON.stringify(s));
+      console.log('[reheatDashboard]   s.length:', s.length, '| first char:', JSON.stringify(s.charAt(0)), '| last char:', JSON.stringify(s.charAt(s.length - 1)));
+
+      var result;
       // Bracket-wrapped value: single ref [id:display] or list [ref1, ref2, ...]
       if (s.charAt(0) === '[' && s.charAt(s.length - 1) === ']') {
         var inner = s.slice(1, -1);
+        console.log('[reheatDashboard]   bracket match — inner:', JSON.stringify(inner));
         // List of refs (comma-separated) → Axon list [@ref1, @ref2]
         if (inner.indexOf(',') !== -1) {
           var parts = inner.split(',').map(function (p) {
             p = p.trim();
             return p.charAt(0) === '@' ? p : '@' + p;
           });
-          return '[' + parts.join(', ') + ']';
+          result = '[' + parts.join(', ') + ']';
+          console.log('[reheatDashboard]   → list result:', result);
+          return result;
         }
         // Single ref
-        return '@' + inner;
+        result = '@' + inner;
+        console.log('[reheatDashboard]   → single bracket ref result:', result);
+        return result;
       }
       // Fantom Ref bare ID: nav:equip.all → @nav:equip.all
       if (/^[a-z][a-z0-9]*:[a-z]/i.test(s)) {
-        return '@' + s;
+        result = '@' + s;
+        console.log('[reheatDashboard]   → colon ref result:', result);
+        return result;
       }
       // Base64-encoded Haystack ref ID (e.g. aWQ6QHA6...) — prefix with @
       if (/^[A-Za-z0-9+/=]{16,}$/.test(s) && !/\s/.test(s)) {
-        return '@' + s;
+        result = '@' + s;
+        console.log('[reheatDashboard]   → base64 ref result:', result);
+        return result;
       }
       // Fantom DateSpan comma form: 2026-02-01,2026-03-01 → 2026-02-01..2026-03-01
       if (/^\d{4}-\d{2}-\d{2},\d{4}-\d{2}-\d{2}$/.test(s)) {
-        return s.replace(',', '..');
+        result = s.replace(',', '..');
+        console.log('[reheatDashboard]   → dateSpan result:', result);
+        return result;
       }
+      console.log('[reheatDashboard]   → no pattern matched, returning raw:', JSON.stringify(s));
       return s;
-    } catch (e) { /* variable not set */ }
+    } catch (e) {
+      console.log('[reheatDashboard] tryReadVar("' + varName + '") threw:', e);
+    }
     return null;
   }
 
