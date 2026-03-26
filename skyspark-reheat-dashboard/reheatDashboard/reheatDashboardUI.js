@@ -40,6 +40,10 @@ window.reheatDashboard = window.reheatDashboard || {};
       if (/^[a-z][a-z0-9]*:[a-z]/i.test(s)) {
         return '@' + s;
       }
+      // Base64-encoded Haystack ref ID (e.g. aWQ6QHA6...) — prefix with @
+      if (/^[A-Za-z0-9+/=]{16,}$/.test(s) && !/\s/.test(s)) {
+        return '@' + s;
+      }
       // Fantom DateSpan comma form: 2026-02-01,2026-03-01 → 2026-02-01..2026-03-01
       if (/^\d{4}-\d{2}-\d{2},\d{4}-\d{2}-\d{2}$/.test(s)) {
         return s.replace(',', '..');
