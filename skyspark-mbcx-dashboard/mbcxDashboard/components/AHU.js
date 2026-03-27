@@ -62,12 +62,22 @@ window.mbcxDashboard.components.AHU = {
     var HP   = window.mbcxDashboard.haystackParser;
     var C    = window.Chart;
 
-    var html = results.map(function (r) {
+    // Toggle bar
+    var toggleHtml = '<div class="ahu-toggle" id="mbcxAhuToggle">' +
+      results.map(function (r, i) {
+        var active = i === 0 ? ' ahu-toggle-btn--active' : '';
+        return '<button class="ahu-toggle-btn' + active + '" data-ahu-metric="' + r.metric.id + '">'
+          + _esc(r.metric.label) + '</button>';
+      }).join('') +
+    '</div>';
+
+    // Metric blocks
+    var blocksHtml = results.map(function (r, i) {
       var canvasId = 'mbcxAhuChart-' + r.metric.id;
       var tParsed  = HP.parseGrid(r.tableGrid);
+      var hidden   = i === 0 ? '' : ' ahu-metric-block--hidden';
       return [
-        '<div class="ahu-metric-block">',
-        '  <div class="ahu-metric-title">' + _esc(r.metric.label) + ' &bull; Breakdown By AHU</div>',
+        '<div class="ahu-metric-block' + hidden + '" data-ahu-block="' + r.metric.id + '">',
         '  <div class="ahu-chart-wrap">',
         '    <canvas id="' + canvasId + '" height="220"></canvas>',
         '  </div>',
@@ -78,7 +88,22 @@ window.mbcxDashboard.components.AHU = {
       ].join('\n');
     }).join('\n');
 
-    contentEl.innerHTML = html;
+    contentEl.innerHTML = toggleHtml + blocksHtml;
+
+    // Toggle click handler
+    var toggle = contentEl.querySelector('#mbcxAhuToggle');
+    if (toggle) {
+      toggle.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-ahu-metric]');
+        if (!btn) return;
+        var id = btn.getAttribute('data-ahu-metric');
+        contentEl.querySelectorAll('.ahu-toggle-btn').forEach(function (b) { b.classList.remove('ahu-toggle-btn--active'); });
+        btn.classList.add('ahu-toggle-btn--active');
+        contentEl.querySelectorAll('.ahu-metric-block').forEach(function (bl) {
+          bl.classList.toggle('ahu-metric-block--hidden', bl.getAttribute('data-ahu-block') !== id);
+        });
+      });
+    }
 
     // Init each chart after DOM is set
     results.forEach(function (r) {
