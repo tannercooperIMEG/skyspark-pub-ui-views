@@ -42,8 +42,8 @@ window.mbcxDashboard.components.AHU = {
         self._renderLive(contentEl, result.plotGrid, result.tableGrid);
       })
       .catch(function (err) {
-        console.warn('[mbcxDashboard] AHU data failed:', err);
-        contentEl.innerHTML = self._noData('Could not load AHU data.');
+        console.error('[mbcxDashboard] AHU data failed:', err);
+        contentEl.innerHTML = self._noData('Could not load AHU data: ' + (err && err.message ? err.message : String(err)));
       });
   },
 
