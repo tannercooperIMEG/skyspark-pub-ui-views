@@ -138,10 +138,10 @@ window.mbcxDashboard.components.AHU = {
 
     var years = Object.keys(byYear).sort();
 
-    // Color palette: older years gray, current year green
+    // Color palette: older years gray, current year vibrant blue (cooling valve)
     var palette = [
-      { bg: 'rgba(156,163,175,0.45)', border: 'rgba(156,163,175,0.7)' },
-      { bg: 'rgba(92,138,60,0.7)',    border: 'rgba(92,138,60,0.9)'  }
+      { bg: 'rgba(156,163,175,0.45)', border: 'rgba(156,163,175,0.7)'  },
+      { bg: 'rgba(37,99,235,0.75)',   border: 'rgba(37,99,235,0.95)'   }
     ];
 
     var datasets = years.map(function (yr, i) {
