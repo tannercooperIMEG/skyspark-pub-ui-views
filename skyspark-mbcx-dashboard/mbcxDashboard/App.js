@@ -166,7 +166,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
   };
 
   NS.App = {
-    init: function (container, data) {
+    init: function (container, data, ctx) {
       // Resolve component refs (modules loaded after App.js is parsed)
       NS.Components = {
         Header:        window.mbcxDashboard.components.Header,
@@ -194,6 +194,9 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       co.Header.initTimestamp();
       initCharts(container, data);
       bindEvents(container, data);
+
+      // Kick off live AHU data fetch
+      co.AHU.initLive(container, ctx || null);
     }
   };
 

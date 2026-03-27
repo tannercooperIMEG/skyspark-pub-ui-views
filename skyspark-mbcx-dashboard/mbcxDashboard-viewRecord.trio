@@ -2,8 +2,8 @@
 // After copying, restart SkySpark and navigate to the view.
 //
 // Deployment checklist:
-//   1. Copy mbcxDashboardEntry.js  →  {var}/pub/ui/
-//   2. Copy mbcxDashboard/         →  {var}/pub/ui/mbcxDashboard/  (preserve sub-structure)
+//   1. Copy mbcxDashboardEntry.js  ->  {var}/pub/ui/
+//   2. Copy mbcxDashboard/         ->  {var}/pub/ui/mbcxDashboard/  (preserve sub-structure)
 //   3. Import this trio file into the SkySpark project database
 //   4. Restart SkySpark
 
@@ -13,3 +13,4 @@ view: "mbcxDashboardView"
 src:
   view:      { inherit:"js" }
   jsHandler: { var defVal:"mbcxDashboardHandler" }
+  site:      { var kind:"Ref" }

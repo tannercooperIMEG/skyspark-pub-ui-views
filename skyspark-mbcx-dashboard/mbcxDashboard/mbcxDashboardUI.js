@@ -37,7 +37,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
     elem.appendChild(container);
 
     // Attempt SkySpark session
-    var attestKey = null, projectName = null;
+    var attestKey = null, projectName = null, siteRef = null;
     try {
       var session = view.session();
       attestKey   = session.attestKey();
@@ -46,6 +46,23 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       console.warn('[mbcxDashboard] No SkySpark session — using demo data.');
     }
 
+    // Read site view variable (Ref)
+    if (attestKey) {
+      try {
+        var siteVal = view.var('site');
+        if (siteVal) {
+          // Haystack Ref may be an object with .id or .val, or a plain string
+          siteRef = (typeof siteVal === 'object')
+            ? (siteVal.id || siteVal.val || null)
+            : String(siteVal);
+        }
+      } catch (e) {
+        console.warn('[mbcxDashboard] Could not read site var:', e);
+      }
+    }
+
+    var ctx = { attestKey: attestKey, projectName: projectName, siteRef: siteRef };
+
     if (attestKey && projectName) {
       var gen = ++_fetchGen;
       container.innerHTML = '<div style="padding:2rem;color:#888">Loading\u2026</div>';
@@ -53,15 +70,15 @@ window.mbcxDashboard = window.mbcxDashboard || {};
         .then(function (data) {
           if (gen !== _fetchGen) return;
           container.innerHTML = '';
-          NS.App.init(container, data);
+          NS.App.init(container, data, ctx);
         })
         .catch(function (err) {
           if (gen !== _fetchGen) return;
           console.warn('[mbcxDashboard] Live data failed, falling back to demo:', err);
-          NS.App.init(container, NS.demoData);
+          NS.App.init(container, NS.demoData, ctx);
         });
     } else {
-      NS.App.init(container, NS.demoData);
+      NS.App.init(container, NS.demoData, ctx);
     }
   };
 

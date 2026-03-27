@@ -328,3 +328,37 @@
   #mbcxDashboard .page { padding: 16px 14px 60px; }
   #mbcxDashboard header { padding: 0 1rem; }
 }
+
+/* ── AHU live section ── */
+#mbcxDashboard .ahu-loading {
+  padding: 2rem; color: var(--gray-400); font-size: 13px; text-align: center;
+}
+#mbcxDashboard .ahu-no-data {
+  padding: 1.5rem; color: var(--gray-400); font-size: 13px; text-align: center;
+  border: 1px dashed var(--gray-200); border-radius: 6px; margin-top: 8px;
+}
+#mbcxDashboard .ahu-no-rows {
+  color: var(--gray-400); font-size: 13px; padding: 1rem 0;
+}
+#mbcxDashboard .ahu-chart-wrap {
+  position: relative; height: 260px; margin-bottom: 20px;
+}
+#mbcxDashboard .ahu-table-wrap {
+  overflow-x: auto;
+}
+#mbcxDashboard .ahu-table {
+  width: 100%; border-collapse: collapse; font-size: 12px;
+}
+#mbcxDashboard .ahu-th {
+  text-align: left; padding: 6px 10px; background: var(--gray-50);
+  border-bottom: 2px solid var(--gray-200); color: var(--gray-500);
+  font-weight: 600; font-size: 11px; white-space: nowrap;
+}
+#mbcxDashboard .ahu-td {
+  padding: 7px 10px; border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+#mbcxDashboard .ahu-td-num {
+  text-align: right; font-variant-numeric: tabular-nums; color: var(--gray-800);
+}
+#mbcxDashboard .ahu-table tbody tr:hover { background: var(--gray-50); }

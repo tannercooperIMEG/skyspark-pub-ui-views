@@ -1,0 +1,24 @@
+// evals/loadAhuData.js
+// Fetch AHU Cooling Valve Output plot and table grids from SkySpark.
+window.mbcxDashboard = window.mbcxDashboard || {};
+window.mbcxDashboard.evals = window.mbcxDashboard.evals || {};
+
+(function (NS) {
+
+  // siteRef: Haystack Ref id string (e.g. "p:myProj:r:xxxx")
+  // Returns Promise<{ plotGrid: grid, tableGrid: grid }>
+  NS.loadAhuData = function (attestKey, projectName, siteRef) {
+    var API = window.mbcxDashboard.api;
+    var refLit    = '@' + siteRef;
+    var plotExpr  = 'view_pub_mbcxDashboard_AHUs(' + refLit + ',1,false,false)';
+    var tableExpr = 'view_pub_mbcxDashboard_AHUs(' + refLit + ',1,false,true)';
+
+    return Promise.all([
+      API.evalAxon(attestKey, projectName, plotExpr),
+      API.evalAxon(attestKey, projectName, tableExpr)
+    ]).then(function (results) {
+      return { plotGrid: results[0], tableGrid: results[1] };
+    });
+  };
+
+})(window.mbcxDashboard.evals);
