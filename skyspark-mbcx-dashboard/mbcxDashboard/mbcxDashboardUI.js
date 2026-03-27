@@ -46,15 +46,26 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       console.warn('[mbcxDashboard] No SkySpark session — using demo data.');
     }
 
-    // Read site view variable (Ref)
+    // Read site view variable (Ref) — returns a Fantom proxy
     if (attestKey) {
       try {
         var siteVal = view.var('site');
-        if (siteVal) {
-          // Haystack Ref may be an object with .id or .val, or a plain string
-          siteRef = (typeof siteVal === 'object')
-            ? (siteVal.id || siteVal.val || null)
-            : String(siteVal);
+        if (siteVal != null) {
+          // Preferred: toAxon() returns proper Axon ref literal like @p:proj:r:xxx
+          if (typeof siteVal.toAxon === 'function') {
+            siteRef = siteVal.toAxon();
+          } else {
+            // Fall back: toStr() on a Ref returns the bare ID; prefix with @
+            var s;
+            try { s = typeof siteVal.toStr === 'function' ? siteVal.toStr() : String(siteVal); }
+            catch (e2) { s = String(siteVal); }
+            // Fantom display form [id] → @id
+            if (s.charAt(0) === '[' && s.charAt(s.length - 1) === ']') {
+              siteRef = '@' + s.slice(1, -1);
+            } else {
+              siteRef = s.charAt(0) === '@' ? s : '@' + s;
+            }
+          }
         }
       } catch (e) {
         console.warn('[mbcxDashboard] Could not read site var:', e);

@@ -5,13 +5,12 @@ window.mbcxDashboard.evals = window.mbcxDashboard.evals || {};
 
 (function (NS) {
 
-  // siteRef: Haystack Ref id string (e.g. "p:myProj:r:xxxx")
+  // siteRef: Axon ref literal string including @ prefix (e.g. "@p:myProj:r:xxxx")
   // Returns Promise<{ plotGrid: grid, tableGrid: grid }>
   NS.loadAhuData = function (attestKey, projectName, siteRef) {
     var API = window.mbcxDashboard.api;
-    var refLit    = '@' + siteRef;
-    var plotExpr  = 'view_pub_mbcxDashboard_AHUs(' + refLit + ',1,false,false)';
-    var tableExpr = 'view_pub_mbcxDashboard_AHUs(' + refLit + ',1,false,true)';
+    var plotExpr  = 'view_pub_mbcxDashboard_AHUs(' + siteRef + ',1,false,false)';
+    var tableExpr = 'view_pub_mbcxDashboard_AHUs(' + siteRef + ',1,false,true)';
 
     return Promise.all([
       API.evalAxon(attestKey, projectName, plotExpr),
