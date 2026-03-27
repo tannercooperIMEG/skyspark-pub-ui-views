@@ -439,3 +439,20 @@
 #mbcxAhuSection:-webkit-full-screen {
   background: #fff; padding: 24px; overflow-y: auto;
 }
+
+/* ── AHU metric block — grid layout (overrides earlier flex rules) ── */
+#mbcxDashboard .ahu-metric-block {
+  display: grid !important;
+  grid-template-columns: 1fr 400px;
+  gap: 20px;
+  align-items: start;
+  border-top: 1px solid var(--gray-100);
+  padding: 4px 0 8px;
+}
+#mbcxDashboard .ahu-metric-block:first-of-type { border-top: none; }
+#mbcxDashboard .ahu-metric-block .ahu-chart-wrap {
+  position: relative; height: 260px; margin-bottom: 0;
+}
+#mbcxDashboard .ahu-metric-block .ahu-table-wrap {
+  width: 100%; overflow-x: auto; max-height: 280px; overflow-y: auto;
+}

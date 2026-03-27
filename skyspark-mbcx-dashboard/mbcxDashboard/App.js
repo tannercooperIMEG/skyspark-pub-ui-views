@@ -59,18 +59,15 @@ window.mbcxDashboard = window.mbcxDashboard || {};
 
       var co = NS.Components;
       container.innerHTML = [
-        co.Header.render(data),
         '<div class="page">',
         co.HealthBanner.render(data),
         co.BuildingMeters.render(data),
         co.CUP.render(data),
         co.AHU.render(data),
         co.TerminalUnits.render(data),
-        '</div>',
-        co.Footer.render()
+        '</div>'
       ].join('\n');
 
-      co.Header.initTimestamp();
       initCharts(container, data);
       bindEvents(container, data);
 
