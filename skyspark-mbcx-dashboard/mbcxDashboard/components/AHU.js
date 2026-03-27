@@ -132,7 +132,7 @@ window.mbcxDashboard.components.AHU = {
       });
       if (n > 0) {
         if (!byYear[yr]) byYear[yr] = {};
-        byYear[yr][mon] = +(sum / n * 100).toFixed(2);
+        byYear[yr][mon] = +(sum / n).toFixed(2);
       }
     });
 
