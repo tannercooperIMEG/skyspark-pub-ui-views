@@ -2,10 +2,23 @@
 window.mbcxDashboard = window.mbcxDashboard || {};
 window.mbcxDashboard.components = window.mbcxDashboard.components || {};
 
+var CHART_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Diff heat-map: interpolate white→red based on |value| vs max range (±75)
+function _diffBg(v) {
+  if (v === null || v === undefined || isNaN(v)) return '';
+  var ratio = Math.min(Math.abs(v) / 75, 1);
+  var g = Math.round(255 - 196 * ratio);
+  var b = Math.round(255 - 207 * ratio);
+  return 'background:rgb(255,' + g + ',' + b + ');';
+}
+
+function _esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 window.mbcxDashboard.components.AHU = {
 
-  // Render the section shell (header + loading placeholder).
-  // Call initLive(container, ctx) afterwards to populate with live data.
   render: function (d) {
     var ahu = d.ahu;
     return [
@@ -25,8 +38,6 @@ window.mbcxDashboard.components.AHU = {
     ].join('\n');
   },
 
-  // Called after render() — fetches live data and replaces the loading placeholder.
-  // ctx: { attestKey, projectName, siteRef }
   initLive: function (container, ctx) {
     var self = this;
     var contentEl = container.querySelector('#mbcxAhuContent');
@@ -47,16 +58,15 @@ window.mbcxDashboard.components.AHU = {
       });
   },
 
-  // Render chart + table from live grid data
   _renderLive: function (contentEl, plotGrid, tableGrid) {
-    var HP  = window.mbcxDashboard.haystackParser;
-    var C   = window.Chart;
-    var parsed  = HP.parseGrid(plotGrid);
+    var HP     = window.mbcxDashboard.haystackParser;
+    var C      = window.Chart;
+    var parsed = HP.parseGrid(plotGrid);
     var tParsed = HP.parseGrid(tableGrid);
 
     contentEl.innerHTML = [
       '<div class="ahu-chart-wrap">',
-      '  <canvas id="mbcxAhuCoolingChart" height="220"></canvas>',
+      '  <canvas id="mbcxAhuCoolingChart" height="260"></canvas>',
       '</div>',
       '<div class="ahu-table-wrap">',
       this._tableHTML(tParsed, tableGrid),
@@ -76,66 +86,111 @@ window.mbcxDashboard.components.AHU = {
     var cols = parsed.cols;
     var rows = parsed.rows;
 
-    // Identify the timestamp column and all numeric data columns
-    var tsCol    = null;
+    // Find the timestamp column — check all rows, not just first
+    var tsCol = null;
+    cols.forEach(function (col) {
+      if (tsCol) return;
+      if (col === 'ts') { tsCol = col; return; }
+      for (var i = 0; i < rows.length; i++) {
+        var v = rows[i][col];
+        if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(v)) { tsCol = col; return; }
+      }
+    });
+
+    // Find numeric data columns — scan all rows for a numeric sample
     var dataCols = [];
     cols.forEach(function (col) {
-      var sample = rows[0][col];
-      if (!tsCol && (col === 'ts' || (typeof sample === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(sample)))) {
-        tsCol = col;
-      } else if (typeof sample === 'number') {
-        dataCols.push(col);
+      if (col === tsCol || col === 'id') return;
+      for (var i = 0; i < rows.length; i++) {
+        var v = rows[i][col];
+        if (v !== null && v !== undefined && typeof v === 'number') { dataCols.push(col); return; }
       }
     });
-    if (!dataCols.length) return;
 
-    // Format X labels: ISO datetime → "Jan '25"
-    var labelCol = tsCol || cols[0];
-    var labels = rows.map(function (r) {
-      var v = r[labelCol];
-      if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) {
-        var d = new Date(v);
-        return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-      }
-      return String(v != null ? v : '');
-    });
+    if (!dataCols.length) {
+      console.warn('[mbcxDashboard] AHU chart: no numeric columns found. Cols:', cols, 'Sample row:', rows[0]);
+      return;
+    }
 
-    // Build fleet-average series (values are fractions 0–1; multiply by 100 for %)
-    var avgData = rows.map(function (r) {
+    // Group rows by (year, month), computing fleet average across all AHU columns.
+    // Values arrive as fractions (0–1); multiply × 100 for %.
+    var byYear = {}; // { "2025": { 1: avg, 2: avg, ... }, "2026": { ... } }
+
+    rows.forEach(function (r) {
+      var tsVal = tsCol ? r[tsCol] : null;
+      if (!tsVal) return;
+      var d = new Date(tsVal);
+      if (isNaN(d.getTime())) return;
+
+      var yr  = String(d.getFullYear());
+      var mon = d.getMonth() + 1; // 1–12
+
       var sum = 0, n = 0;
-      dataCols.forEach(function (c) { if (r[c] != null) { sum += r[c]; n++; } });
-      return n > 0 ? +(sum / n * 100).toFixed(2) : null;
+      dataCols.forEach(function (c) {
+        var v = r[c];
+        if (v !== null && v !== undefined && typeof v === 'number') { sum += v; n++; }
+      });
+      if (n > 0) {
+        if (!byYear[yr]) byYear[yr] = {};
+        byYear[yr][mon] = +(sum / n * 100).toFixed(2);
+      }
+    });
+
+    var years = Object.keys(byYear).sort();
+
+    // Color palette: older years gray, current year green
+    var palette = [
+      { bg: 'rgba(156,163,175,0.45)', border: 'rgba(156,163,175,0.7)' },
+      { bg: 'rgba(92,138,60,0.7)',    border: 'rgba(92,138,60,0.9)'  }
+    ];
+
+    var datasets = years.map(function (yr, i) {
+      var c = palette[Math.min(i, palette.length - 1)];
+      return {
+        label: yr,
+        data: CHART_MONTHS.map(function (_, mi) {
+          var v = byYear[yr][mi + 1];
+          return v !== undefined ? v : null;
+        }),
+        backgroundColor: c.bg,
+        borderColor: c.border,
+        borderWidth: 1,
+        barPercentage: 0.8,
+        categoryPercentage: 0.85
+      };
     });
 
     new C(canvas, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Fleet Avg Cooling Valve',
-          data: avgData,
-          borderColor: 'rgba(92,138,60,0.9)',
-          backgroundColor: 'rgba(92,138,60,0.12)',
-          borderWidth: 2,
-          pointRadius: 3,
-          tension: 0.3,
-          fill: true
-        }]
-      },
+      type: 'bar',
+      data: { labels: CHART_MONTHS, datasets: datasets },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend: {
+            display: years.length > 1,
+            position: 'top',
+            labels: { font: { size: 10 }, color: '#6B7280', boxWidth: 12 }
+          },
           tooltip: {
             backgroundColor: '#1F2937',
             titleFont: { size: 11 }, bodyFont: { size: 12 }, padding: 9, cornerRadius: 5,
-            callbacks: { label: function (c) { return c.parsed.y.toFixed(1) + '%'; } }
+            callbacks: { label: function (c) { return c.dataset.label + ': ' + c.parsed.y.toFixed(1) + '%'; } }
           }
         },
         scales: {
-          x: { ticks: { font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 14 }, grid: { display: false }, border: { display: false } },
-          y: { ticks: { font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 5, callback: function (v) { return v.toFixed(0) + '%'; } }, grid: { color: '#F3F4F6' }, border: { display: false } }
+          x: {
+            ticks: { font: { size: 10 }, color: '#9CA3AF' },
+            grid: { display: false }, border: { display: false }
+          },
+          y: {
+            min: 0,
+            ticks: {
+              font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 6,
+              callback: function (v) { return v + '%'; }
+            },
+            grid: { color: '#F3F4F6' }, border: { display: false }
+          }
         }
       }
     });
@@ -145,13 +200,22 @@ window.mbcxDashboard.components.AHU = {
     var HP = window.mbcxDashboard.haystackParser;
     if (!tParsed.rows.length) return '<p class="ahu-no-rows">No data returned.</p>';
 
-    var cols = tParsed.cols;
+    var cols    = tParsed.cols;
     var headers = cols.map(function (c) { return HP.colDis(rawGrid, c); });
 
     var rowsHtml = tParsed.rows.map(function (row) {
       var cells = cols.map(function (c) {
         var v = row[c];
         if (v === null || v === undefined) return '<td class="ahu-td">&mdash;</td>';
+
+        // Diff column: numeric with heat-map background
+        if (c === 'diff' && typeof v === 'number') {
+          var style = _diffBg(v);
+          var sign  = v > 0 ? '+' : '';
+          return '<td class="ahu-td ahu-td-num ahu-td-diff" style="' + style + '">'
+            + sign + v.toFixed(1) + '%</td>';
+        }
+
         if (typeof v === 'number') return '<td class="ahu-td ahu-td-num">' + v.toFixed(1) + '%</td>';
         if (typeof v === 'object' && v.dis) return '<td class="ahu-td">' + _esc(v.dis) + '</td>';
         return '<td class="ahu-td">' + _esc(String(v)) + '</td>';
@@ -171,7 +235,3 @@ window.mbcxDashboard.components.AHU = {
     return '<div class="ahu-no-data">' + msg + '</div>';
   }
 };
-
-function _esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}

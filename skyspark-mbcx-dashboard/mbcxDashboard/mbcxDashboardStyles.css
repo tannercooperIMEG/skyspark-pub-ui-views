@@ -377,3 +377,9 @@
   border-radius: 6px; padding: 8px 16px;
 }
 #mbcxDashboard .no-site-hint code { font-family: monospace; color: var(--imeg-blue); }
+
+/* ── AHU diff heat-map cell ── */
+#mbcxDashboard .ahu-td-diff {
+  font-weight: 700;
+  transition: background 0.2s;
+}
