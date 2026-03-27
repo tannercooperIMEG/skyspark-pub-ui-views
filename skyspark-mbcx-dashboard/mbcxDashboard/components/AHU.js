@@ -27,7 +27,7 @@ window.mbcxDashboard.components.AHU = {
       '      <div class="equip-icon" style="background:var(--imeg-green-lt);">',
       '        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5C8A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>',
       '      </div>',
-      '      <div><div class="equip-title">Air Handling Units</div><div class="equip-meta">' + d.ahu.unitCount + ' AHUs</div></div>',
+      '      <div><div class="equip-title">Air Handling Units</div><div class="equip-meta" id="mbcxAhuCount">\u2014 AHUs</div></div>',
       '    </div>',
       '    <button class="ahu-fs-btn" id="mbcxAhuFsBtn" title="Toggle fullscreen">',
       '      <svg id="mbcxAhuFsIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
@@ -115,6 +115,14 @@ window.mbcxDashboard.components.AHU = {
     }).join('\n');
 
     contentEl.innerHTML = toggleHtml + blocksHtml;
+
+    // Update AHU count from first result's table row count
+    var countEl = document.getElementById('mbcxAhuCount');
+    if (countEl && results.length) {
+      var HP2 = window.mbcxDashboard.haystackParser;
+      var firstTable = HP2.parseGrid(results[0].tableGrid);
+      if (firstTable.rows.length) countEl.textContent = firstTable.rows.length + ' AHUs';
+    }
 
     // Toggle click handler
     var toggle = contentEl.querySelector('#mbcxAhuToggle');
