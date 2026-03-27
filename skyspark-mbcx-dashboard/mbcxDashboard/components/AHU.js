@@ -71,44 +71,55 @@ window.mbcxDashboard.components.AHU = {
   _initChart: function (contentEl, parsed) {
     var C = window.Chart;
     var canvas = contentEl.querySelector('#mbcxAhuCoolingChart');
-    if (!canvas) return;
+    if (!canvas || !parsed.rows.length) return;
 
-    // Find a numeric column for values; skip 'id', 'dis', 'ref'-style cols
-    var skipCols = { id: true, dis: true, ref: true, navName: true };
-    var valCol   = null;
-    var labelCol = null;
+    var cols = parsed.cols;
+    var rows = parsed.rows;
 
-    parsed.cols.forEach(function (col) {
-      if (!labelCol && (col === 'dis' || col === 'navName')) labelCol = col;
-    });
-    parsed.cols.forEach(function (col) {
-      if (!valCol && !skipCols[col]) {
-        var sample = parsed.rows[0] && parsed.rows[0][col];
-        if (typeof sample === 'number') valCol = col;
+    // Identify the timestamp column and all numeric data columns
+    var tsCol    = null;
+    var dataCols = [];
+    cols.forEach(function (col) {
+      var sample = rows[0][col];
+      if (!tsCol && (col === 'ts' || (typeof sample === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(sample)))) {
+        tsCol = col;
+      } else if (typeof sample === 'number') {
+        dataCols.push(col);
       }
     });
-    if (!valCol) {
-      // fallback: first non-label col
-      valCol = parsed.cols.filter(function (c) { return c !== labelCol; })[0];
-    }
-    if (!labelCol) labelCol = parsed.cols[0];
+    if (!dataCols.length) return;
 
-    var labels = parsed.rows.map(function (r) { return r[labelCol] || r[parsed.cols[0]]; });
-    var values = parsed.rows.map(function (r) {
-      var v = r[valCol];
-      return (v !== null && v !== undefined) ? +v : null;
+    // Format X labels: ISO datetime → "Jan '25"
+    var labelCol = tsCol || cols[0];
+    var labels = rows.map(function (r) {
+      var v = r[labelCol];
+      if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) {
+        var d = new Date(v);
+        return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      }
+      return String(v != null ? v : '');
+    });
+
+    // Build fleet-average series (values are fractions 0–1; multiply by 100 for %)
+    var avgData = rows.map(function (r) {
+      var sum = 0, n = 0;
+      dataCols.forEach(function (c) { if (r[c] != null) { sum += r[c]; n++; } });
+      return n > 0 ? +(sum / n * 100).toFixed(2) : null;
     });
 
     new C(canvas, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Cooling Valve Output',
-          data: values,
-          backgroundColor: 'rgba(92,138,60,0.75)',
-          barPercentage: 0.7,
-          categoryPercentage: 0.85
+          label: 'Fleet Avg Cooling Valve',
+          data: avgData,
+          borderColor: 'rgba(92,138,60,0.9)',
+          backgroundColor: 'rgba(92,138,60,0.12)',
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.3,
+          fill: true
         }]
       },
       options: {
@@ -116,11 +127,15 @@ window.mbcxDashboard.components.AHU = {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
-          tooltip: { backgroundColor: '#1F2937', titleFont: { size: 11 }, bodyFont: { size: 12 }, padding: 9, cornerRadius: 5 }
+          tooltip: {
+            backgroundColor: '#1F2937',
+            titleFont: { size: 11 }, bodyFont: { size: 12 }, padding: 9, cornerRadius: 5,
+            callbacks: { label: function (c) { return c.parsed.y.toFixed(1) + '%'; } }
+          }
         },
         scales: {
-          x: { ticks: { font: { size: 10 }, color: '#9CA3AF' }, grid: { display: false }, border: { display: false } },
-          y: { ticks: { font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 5, callback: function (v) { return v + '%'; } }, grid: { color: '#F3F4F6' }, border: { display: false } }
+          x: { ticks: { font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 14 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 5, callback: function (v) { return v.toFixed(0) + '%'; } }, grid: { color: '#F3F4F6' }, border: { display: false } }
         }
       }
     });
@@ -137,7 +152,7 @@ window.mbcxDashboard.components.AHU = {
       var cells = cols.map(function (c) {
         var v = row[c];
         if (v === null || v === undefined) return '<td class="ahu-td">&mdash;</td>';
-        if (typeof v === 'number') return '<td class="ahu-td ahu-td-num">' + v.toFixed(1) + '</td>';
+        if (typeof v === 'number') return '<td class="ahu-td ahu-td-num">' + v.toFixed(1) + '%</td>';
         if (typeof v === 'object' && v.dis) return '<td class="ahu-td">' + _esc(v.dis) + '</td>';
         return '<td class="ahu-td">' + _esc(String(v)) + '</td>';
       }).join('');
