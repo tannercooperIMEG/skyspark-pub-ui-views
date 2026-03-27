@@ -58,7 +58,15 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       };
 
       var co = NS.Components;
+      var dateStr = '';
+      if (ctx && ctx.datesStart && ctx.datesEnd) dateStr = ctx.datesStart + '\u2009\u2013\u2009' + ctx.datesEnd;
+      else if (ctx && ctx.datesStart) dateStr = ctx.datesStart;
+
       container.innerHTML = [
+        '<div class="dash-title-bar">',
+        '  <div class="dash-title-site" id="mbcxDashTitleSite">' + (ctx && ctx.siteName ? ctx.siteName : 'Loading\u2026') + '</div>',
+        dateStr ? '<div class="dash-title-dates">' + dateStr + '</div>' : '',
+        '</div>',
         '<div class="page">',
         co.HealthBanner.render(data),
         co.BuildingMeters.render(data),

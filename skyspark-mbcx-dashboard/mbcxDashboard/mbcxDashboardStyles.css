@@ -456,3 +456,27 @@
 #mbcxDashboard .ahu-metric-block .ahu-table-wrap {
   width: 100%; overflow-x: auto; max-height: 280px; overflow-y: auto;
 }
+
+/* ── AHU toggle hidden fix (must beat display:grid !important) ── */
+#mbcxDashboard .ahu-metric-block--hidden { display: none !important; }
+
+/* ── Dashboard title bar ── */
+#mbcxDashboard .dash-title-bar {
+  background: var(--imeg-blue);
+  color: #fff;
+  padding: 12px 32px;
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  flex-shrink: 0;
+}
+#mbcxDashboard .dash-title-site {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+#mbcxDashboard .dash-title-dates {
+  font-size: 12px;
+  opacity: 0.78;
+  font-weight: 400;
+}

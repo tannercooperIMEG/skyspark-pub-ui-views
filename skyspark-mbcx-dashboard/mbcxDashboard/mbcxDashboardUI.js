@@ -95,13 +95,44 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       }
     }
 
+    // Read date view variables
+    var datesStart = null, datesEnd = null;
+    try {
+      var dsVal = view.var('datesStart');
+      if (dsVal != null) datesStart = typeof dsVal.toStr === 'function' ? dsVal.toStr() : String(dsVal);
+      var deVal = view.var('datesEnd');
+      if (deVal != null) datesEnd = typeof deVal.toStr === 'function' ? deVal.toStr() : String(deVal);
+    } catch (e) { /* not set */ }
+
     // No site configured — show prompt instead of dashboard
     if (attestKey && !siteRef) {
       renderNoSite(container);
       return;
     }
 
-    var ctx = { attestKey: attestKey, projectName: projectName, siteRef: siteRef };
+    var ctx = { attestKey: attestKey, projectName: projectName, siteRef: siteRef,
+                datesStart: datesStart, datesEnd: datesEnd, siteName: null };
+
+    function launch(data) {
+      container.innerHTML = '';
+      NS.App.init(container, data, ctx);
+      // Fetch site name in parallel; update title bar when ready
+      if (attestKey && siteRef) {
+        NS.api.evalAxon(attestKey, projectName, 'readById(' + siteRef + ').dis')
+          .then(function (grid) {
+            var HP = NS.haystackParser;
+            var parsed = HP.parseGrid(HP ? grid : grid);
+            if (parsed.rows.length) {
+              var row = parsed.rows[0];
+              var key = Object.keys(row)[0];
+              ctx.siteName = row[key] || null;
+            }
+            var el = container.querySelector('#mbcxDashTitleSite');
+            if (el && ctx.siteName) el.textContent = ctx.siteName;
+          })
+          .catch(function () {});
+      }
+    }
 
     if (attestKey && projectName) {
       var gen = ++_fetchGen;
@@ -109,16 +140,15 @@ window.mbcxDashboard = window.mbcxDashboard || {};
       NS.evals.loadData(attestKey, projectName)
         .then(function (data) {
           if (gen !== _fetchGen) return;
-          container.innerHTML = '';
-          NS.App.init(container, data, ctx);
+          launch(data);
         })
         .catch(function (err) {
           if (gen !== _fetchGen) return;
           console.warn('[mbcxDashboard] Live data failed, falling back to demo:', err);
-          NS.App.init(container, NS.demoData, ctx);
+          launch(NS.demoData);
         });
     } else {
-      NS.App.init(container, NS.demoData, ctx);
+      launch(NS.demoData);
     }
   };
 

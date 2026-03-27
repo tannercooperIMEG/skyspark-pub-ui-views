@@ -13,4 +13,6 @@ view: "mbcxDashboardView"
 src:
   view:      { inherit:"js" }
   jsHandler: { var defVal:"mbcxDashboardHandler" }
-  site:      { var kind:"Ref" }
+  site:       { var kind:"Ref" }
+  datesStart: { var kind:"Date" }
+  datesEnd:   { var kind:"Date" }
