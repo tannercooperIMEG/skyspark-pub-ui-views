@@ -383,3 +383,14 @@
   font-weight: 700;
   transition: background 0.2s;
 }
+
+/* ── AHU metric blocks ── */
+#mbcxDashboard .ahu-metric-block {
+  border-top: 1px solid var(--gray-100);
+  padding: 20px 0 8px;
+}
+#mbcxDashboard .ahu-metric-block:first-child { border-top: none; padding-top: 4px; }
+#mbcxDashboard .ahu-metric-title {
+  font-size: 13px; font-weight: 600; color: var(--gray-700);
+  margin-bottom: 12px; letter-spacing: 0.01em;
+}
