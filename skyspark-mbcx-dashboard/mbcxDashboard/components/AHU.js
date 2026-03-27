@@ -132,7 +132,7 @@ window.mbcxDashboard.components.AHU = {
       });
       if (n > 0) {
         if (!byYear[yr]) byYear[yr] = {};
-        byYear[yr][mon] = +(sum / n).toFixed(2);
+        byYear[yr][mon] = +(sum / n / 100).toFixed(4);
       }
     });
 
@@ -187,7 +187,7 @@ window.mbcxDashboard.components.AHU = {
             min: 0,
             ticks: {
               font: { size: 10 }, color: '#9CA3AF', maxTicksLimit: 6,
-              callback: function (v) { return v + '%'; }
+              callback: function (v) { return (v * 100).toFixed(0) + '%'; }
             },
             grid: { color: '#F3F4F6' }, border: { display: false }
           }
