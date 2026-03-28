@@ -81,6 +81,9 @@ window.mbcxDashboard = window.mbcxDashboard || {};
 
       // Kick off live AHU data fetch
       co.AHU.initLive(container, ctx || null);
+
+      // Initialize Terminal Units charts (demo data)
+      co.TerminalUnits.initLive(container, ctx || null);
     }
   };
 
