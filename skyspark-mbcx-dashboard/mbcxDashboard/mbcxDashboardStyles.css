@@ -77,7 +77,7 @@
 }
 
 /* ── Page ── */
-#mbcxDashboard .page { width: 100%; padding: 28px 32px 80px; }
+#mbcxDashboard .page { width: 100%; padding: 20px 28px 80px; }
 
 /* ── TODO placeholder ── */
 #mbcxDashboard .todo-placeholder {
@@ -109,9 +109,9 @@
 
 /* ── Health Banner ── */
 #mbcxDashboard .health-banner {
-  background: var(--imeg-blue); border-radius: 8px;
+  background: var(--imeg-blue); border-radius: 10px;
   padding: 20px 28px; display: flex; align-items: center;
-  gap: 32px; flex-wrap: wrap; margin-bottom: 32px;
+  gap: 32px; flex-wrap: wrap; margin-bottom: 18px;
 }
 #mbcxDashboard .hb-score-num { font-size: 48px; font-weight: 700; line-height: 1; color: #FCD34D; letter-spacing: -0.03em; }
 #mbcxDashboard .hb-label { font-size: 10px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
@@ -125,14 +125,75 @@
 #mbcxDashboard .hbs-num.plain { color: rgba(255,255,255,0.85); }
 #mbcxDashboard .hbs-sub { font-size: 10.5px; color: rgba(255,255,255,0.38); margin-top: 2px; }
 
-/* ── Equipment Section ── */
-#mbcxDashboard .equip-section { margin-bottom: 44px; }
+/* ── Equipment Section — card style ── */
+#mbcxDashboard .equip-section {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 0 transparent;
+  margin-bottom: 18px;
+  overflow: hidden;
+}
+
+/* Collapsible sections get a coloured left accent */
+#mbcxDashboard .equip-section--collapsible {
+  border-left: 4px solid var(--gray-300); /* overridden per-section via inline style */
+}
 
 #mbcxDashboard .equip-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding-bottom: 10px; border-bottom: 2px solid var(--gray-200);
-  margin-bottom: 16px; gap: 12px;
+  padding: 14px 20px;
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+  gap: 12px;
+  margin-bottom: 0;
 }
+
+/* Non-collapsible sections (AHU, HealthBanner area) keep the border visible */
+#mbcxDashboard .equip-section--collapsible .equip-header {
+  border-bottom-color: transparent;
+}
+#mbcxDashboard .equip-section--open .equip-header {
+  border-bottom-color: var(--gray-200);
+}
+
+/* Clickable header */
+#mbcxDashboard .equip-header--clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+#mbcxDashboard .equip-header--clickable:hover {
+  background: var(--gray-100);
+}
+
+/* Chevron toggle button */
+#mbcxDashboard .equip-collapse-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px;
+  color: var(--gray-400); flex-shrink: 0;
+}
+#mbcxDashboard .equip-chevron {
+  transition: transform 0.2s ease;
+}
+#mbcxDashboard .equip-section--open .equip-chevron {
+  transform: rotate(180deg);
+}
+
+/* Collapsible body — hidden by default, shown when open */
+#mbcxDashboard .equip-body {
+  display: none;
+  padding: 20px;
+}
+#mbcxDashboard .equip-section--open .equip-body {
+  display: block;
+}
+
+/* AHU content area padding (non-collapsible) */
+#mbcxDashboard #mbcxAhuContent {
+  padding: 16px 20px 20px;
+}
+
 #mbcxDashboard .equip-header-left { display: flex; align-items: center; gap: 12px; }
 #mbcxDashboard .equip-icon {
   width: 32px; height: 32px; border-radius: 6px;

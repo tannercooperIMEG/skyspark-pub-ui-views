@@ -21,7 +21,7 @@ window.mbcxDashboard.components.AHU = {
 
   render: function (d) {
     return [
-      '<div class="equip-section" id="mbcxAhuSection">',
+      '<div class="equip-section" id="mbcxAhuSection" style="border-left:4px solid #5C8A3C;">',
       '  <div class="equip-header">',
       '    <div class="equip-header-left">',
       '      <div class="equip-icon" style="background:var(--imeg-green-lt);">',
