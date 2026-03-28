@@ -189,10 +189,6 @@
   display: block;
 }
 
-/* AHU content area padding (non-collapsible) */
-#mbcxDashboard #mbcxAhuContent {
-  padding: 16px 20px 20px;
-}
 
 #mbcxDashboard .equip-header-left { display: flex; align-items: center; gap: 12px; }
 #mbcxDashboard .equip-icon {
