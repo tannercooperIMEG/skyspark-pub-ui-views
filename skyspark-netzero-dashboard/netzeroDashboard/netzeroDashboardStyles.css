@@ -117,7 +117,7 @@ select.nz-meta-item {
   border: 1px solid var(--nz-200);
   border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 24px;
+  margin-bottom: 36px;
   overflow: hidden;
 }
 .nz-section-hdr {
@@ -149,7 +149,35 @@ select.nz-meta-item {
   color: var(--nz-400);
   margin-top: 1px;
 }
-.nz-section-body { padding: 24px 24px 28px; }
+.nz-section-body { padding: 28px 28px 32px; }
+
+/* ── Internal divider (for merged cards) ──────────── */
+.nz-section-divider {
+  border: none;
+  border-top: 1px solid var(--nz-200);
+  margin: 24px 0;
+}
+
+/* ── Collapsible sections ─────────────────────────── */
+.nz-section--collapsible .nz-section-hdr {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.nz-section--collapsible .nz-section-body {
+  display: none;
+}
+.nz-section--collapsible.nz-section--open .nz-section-body {
+  display: block;
+}
+.nz-chevron {
+  width: 20px; height: 20px; flex-shrink: 0;
+  transition: transform 0.2s ease;
+  color: var(--nz-400);
+}
+.nz-section--open .nz-chevron {
+  transform: rotate(180deg);
+}
 
 /* ── KPI strip ─────────────────────────────────────── */
 .nz-kpi-strip {
@@ -226,8 +254,8 @@ select.nz-meta-item {
 .nz-charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 28px;
+  margin-bottom: 36px;
 }
 .nz-chart-header {
   display: flex; align-items: baseline; justify-content: space-between;

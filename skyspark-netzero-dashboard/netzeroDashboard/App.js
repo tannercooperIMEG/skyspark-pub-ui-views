@@ -12,9 +12,18 @@ window.netzeroDashboard = window.netzeroDashboard || {};
     meter: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>'
   };
 
-  function section(icon, bgColor, title, meta, bodyHtml) {
+  var CHEVRON = '<svg class="nz-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>';
+
+  function section(icon, bgColor, title, meta, bodyHtml, opts) {
+    var cls = 'nz-section';
+    var extraHdr = '';
+    if (opts && opts.collapsible) {
+      cls += ' nz-section--collapsible';
+      if (opts.open) cls += ' nz-section--open';
+      extraHdr = CHEVRON;
+    }
     return [
-      '<div class="nz-section">',
+      '<div class="' + cls + '">',
       '  <div class="nz-section-hdr">',
       '    <div class="nz-section-hdr-left">',
       '      <div class="nz-section-icon" style="background:' + bgColor + '">' + icon + '</div>',
@@ -23,12 +32,27 @@ window.netzeroDashboard = window.netzeroDashboard || {};
       meta ? '        <div class="nz-section-meta">' + meta + '</div>' : '',
       '      </div>',
       '    </div>',
+      extraHdr,
       '  </div>',
       '  <div class="nz-section-body">',
       bodyHtml,
       '  </div>',
       '</div>'
     ].join('\n');
+  }
+
+  function bindCollapsible(container) {
+    var sections = container.querySelectorAll('.nz-section--collapsible');
+    for (var i = 0; i < sections.length; i++) {
+      (function (sec) {
+        var hdr = sec.querySelector('.nz-section-hdr');
+        if (hdr) {
+          hdr.addEventListener('click', function () {
+            sec.classList.toggle('nz-section--open');
+          });
+        }
+      })(sections[i]);
+    }
   }
 
   NS.App = {
@@ -39,6 +63,16 @@ window.netzeroDashboard = window.netzeroDashboard || {};
       var dateStr = '';
       if (ctx && ctx.datesStart && ctx.datesEnd) dateStr = ctx.datesStart + '\u2009\u2013\u2009' + ctx.datesEnd;
       else if (ctx && ctx.datesStart) dateStr = ctx.datesStart;
+
+      // Merged Performance Overview body: KPIs + divider + Equiv
+      var overviewBody = [
+        co.KpiStrip.render(data),
+        '<hr class="nz-section-divider">',
+        '<div style="margin-top:4px">',
+        '  <div class="nz-detail-label">Environmental Equivalency</div>',
+        co.EquivStrip.render(data),
+        '</div>'
+      ].join('\n');
 
       container.innerHTML = [
         // Title bar
@@ -61,34 +95,34 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         '  </div>',
         '</div>',
 
-        // KPIs section
-        section(ICONS.kpi, 'var(--nz-blue)', 'Performance Summary',
-          'YTD key metrics \u00b7 5 indicators',
-          co.KpiStrip.render(data)),
-
-        // Equiv section
-        section(ICONS.leaf, 'var(--nz-green)', 'Environmental Equivalency',
-          'Carbon offset equivalents \u00b7 year-to-date',
-          co.EquivStrip.render(data)),
+        // Performance Overview (merged KPIs + Equiv)
+        section(ICONS.kpi, 'var(--nz-blue)', 'Performance Overview',
+          'YTD key metrics \u00b7 environmental equivalents',
+          overviewBody),
 
         // Charts (side-by-side, each in its own section card)
         co.Charts.render(),
 
-        // Detail tables section
+        // Detail tables section (collapsible, default collapsed)
         section(ICONS.table, '#6366F1', 'Actual vs. Modeled Detail',
           'Monthly comparison tables',
-          co.DetailTables.render(data)),
+          co.DetailTables.render(data),
+          { collapsible: true, open: false }),
 
-        // Meter breakdown section
+        // Meter breakdown section (collapsible, default collapsed)
         section(ICONS.meter, 'var(--nz-amber)', 'Meter Breakdown',
           'Individual meter readings \u00b7 12-month view',
-          co.MeterBreakdown.render(data)),
+          co.MeterBreakdown.render(data),
+          { collapsible: true, open: false }),
 
         // Footer
         co.Footer.render(),
 
         '</div>'
       ].join('\n');
+
+      // Bind collapsible toggle handlers
+      bindCollapsible(container);
 
       // Initialize Chart.js charts after DOM
       co.KpiStrip.initDonut(container, data);
