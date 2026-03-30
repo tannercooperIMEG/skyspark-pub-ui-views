@@ -133,7 +133,7 @@ select.nz-meta-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 18px 24px;
   background: var(--nz-50);
   border-bottom: 1px solid var(--nz-200);
   gap: 12px;

@@ -81,14 +81,11 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         // Page content
         '<div class="nz-page">',
 
-        // Page title + meta
+        // Page title
         '<div class="nz-page-titlebar">',
         '  <div>',
         '    <div class="nz-page-title">Building Energy \u2014 Actual vs. Modeled</div>',
         '    <div class="nz-page-subtitle">Year-to-date performance \u00b7 consumption vs. generation</div>',
-        '  </div>',
-        '  <div class="nz-page-meta">',
-        co.Header.renderMeta(data),
         '  </div>',
         '</div>',
 
