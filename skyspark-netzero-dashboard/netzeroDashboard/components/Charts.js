@@ -4,24 +4,17 @@ window.netzeroDashboard.components = window.netzeroDashboard.components || {};
 
 window.netzeroDashboard.components.Charts = {
 
-  _card: function (id, title, iconColor) {
+  _card: function (id, title) {
     return [
-      '<div class="nz-section">',
-      '  <div class="nz-section-hdr">',
-      '    <div class="nz-section-hdr-left">',
-      '      <div class="nz-section-icon" style="background:' + iconColor + '">',
-      '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="2" width="4" height="19"/></svg>',
-      '      </div>',
-      '      <div class="nz-section-title">' + title + '</div>',
-      '    </div>',
+      '<div class="nz-chart-card">',
+      '  <div class="nz-chart-header">',
+      '    <div class="nz-chart-name">' + title + '</div>',
       '    <div class="nz-legend">',
       '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual</span>',
       '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ghost)"></span>Model</span>',
       '    </div>',
       '  </div>',
-      '  <div class="nz-section-body">',
-      '    <div class="nz-chart-wrap"><canvas id="' + id + '"></canvas></div>',
-      '  </div>',
+      '  <div class="nz-chart-wrap"><canvas id="' + id + '"></canvas></div>',
       '</div>'
     ].join('\n');
   },
@@ -29,8 +22,8 @@ window.netzeroDashboard.components.Charts = {
   render: function () {
     return [
       '<div class="nz-charts-grid">',
-      this._card('nzBuildingChart', 'Building Consumption', 'var(--nz-bar-ink)'),
-      this._card('nzSolarChart', 'Solar Generation', 'var(--nz-green)'),
+      this._card('nzBuildingChart', 'Building Consumption'),
+      this._card('nzSolarChart', 'Solar Generation'),
       '</div>'
     ].join('\n');
   },

@@ -255,7 +255,12 @@ select.nz-meta-item {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 28px;
-  margin-bottom: 36px;
+}
+.nz-chart-card {
+  background: var(--nz-50);
+  border: 1px solid var(--nz-200);
+  border-radius: 8px;
+  padding: 16px 20px 20px;
 }
 .nz-chart-header {
   display: flex; align-items: baseline; justify-content: space-between;

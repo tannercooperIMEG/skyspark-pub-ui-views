@@ -95,13 +95,17 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         '  </div>',
         '</div>',
 
-        // Performance Overview (merged KPIs + Equiv)
+        // Performance Overview (merged KPIs + Equiv) — collapsible, default open
         section(ICONS.kpi, 'var(--nz-blue)', 'Performance Overview',
           'YTD key metrics \u00b7 environmental equivalents',
-          overviewBody),
+          overviewBody,
+          { collapsible: true, open: true }),
 
-        // Charts (side-by-side, each in its own section card)
-        co.Charts.render(),
+        // Charts — collapsible, default open
+        section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
+          'Building consumption &amp; solar generation',
+          co.Charts.render(),
+          { collapsible: true, open: true }),
 
         // Detail tables section (collapsible, default collapsed)
         section(ICONS.table, '#6366F1', 'Actual vs. Modeled Detail',
