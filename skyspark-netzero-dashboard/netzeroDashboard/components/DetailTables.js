@@ -82,14 +82,12 @@ window.netzeroDashboard.components.DetailTables = {
     ]);
 
     return [
-      '<div class="nz-tables-section">',
-      '  <div class="nz-section-rule">Actual vs. Modeled detail</div>',
-      '  <div class="nz-tables-grid">',
+      '<div class="nz-section-rule">Actual vs. Modeled detail</div>',
+      '<div class="nz-tables-grid">',
       buildingConsumption,
       solarGeneration,
       actualNetZero,
       modeledNetZero,
-      '  </div>',
       '</div>'
     ].join('\n');
   }

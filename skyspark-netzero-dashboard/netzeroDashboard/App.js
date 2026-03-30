@@ -7,30 +7,38 @@ window.netzeroDashboard = window.netzeroDashboard || {};
     init: function (container, data, ctx) {
       var co = NS.components;
 
-      var siteName = (ctx && ctx.siteName) ? ctx.siteName : 'Demo Site';
-      var dateStr = '';
-      if (ctx && ctx.datesStart && ctx.datesEnd) dateStr = ctx.datesStart + '\u2009\u2013\u2009' + ctx.datesEnd;
-      else if (ctx && ctx.datesStart) dateStr = ctx.datesStart;
-
       container.innerHTML = [
-        '<div class="nz-title-bar">',
-        '  <div class="nz-title-site" id="nzTitleSite">' + siteName + '</div>',
-        dateStr ? '  <div class="nz-title-dates">' + dateStr + '</div>' : '',
-        '</div>',
-        '<div class="nz-page-narrow">',
-        co.Header.render(data),
+        '<div class="nz-page">',
+
+        // ── Header with site title ──
+        co.Header.render(data, ctx),
+
+        // ── KPIs card ──
+        '<div class="nz-card">',
         co.KpiStrip.render(data),
+        '</div>',
+
+        // ── Environmental equivalency card ──
+        '<div class="nz-card">',
         co.EquivStrip.render(data),
+        '</div>',
+
+        // ── Charts (side-by-side, each in its own card) ──
         co.Charts.render(),
+
+        // ── Detail tables card ──
+        '<div class="nz-card">',
         co.DetailTables.render(data),
         '</div>',
-        '<div class="nz-page-full">',
-        '  <div class="nz-meter-section">',
+
+        // ── Meter breakdown card ──
+        '<div class="nz-card">',
         co.MeterBreakdown.render(data),
-        '  </div>',
         '</div>',
-        '<div class="nz-page-narrow-bottom">',
+
+        // ── Footer ──
         co.Footer.render(),
+
         '</div>'
       ].join('\n');
 

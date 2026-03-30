@@ -4,9 +4,9 @@ window.netzeroDashboard.components = window.netzeroDashboard.components || {};
 
 window.netzeroDashboard.components.Charts = {
 
-  _chartRow: function (id, title) {
+  _chartCard: function (id, title) {
     return [
-      '<div class="nz-chart-row">',
+      '<div class="nz-chart-card">',
       '  <div class="nz-chart-header">',
       '    <span class="nz-chart-name">' + title + '</span>',
       '    <div class="nz-legend">',
@@ -21,9 +21,9 @@ window.netzeroDashboard.components.Charts = {
 
   render: function () {
     return [
-      '<div class="nz-chart-section">',
-      this._chartRow('nzBuildingChart', 'Building consumption by month'),
-      this._chartRow('nzSolarChart', 'Solar generation by month'),
+      '<div class="nz-charts-grid">',
+      this._chartCard('nzBuildingChart', 'Building consumption'),
+      this._chartCard('nzSolarChart', 'Solar generation'),
       '</div>'
     ].join('\n');
   },
@@ -59,7 +59,7 @@ window.netzeroDashboard.components.Charts = {
             callback: function (v) { return (v / 1000).toFixed(0) + 'k'; },
             maxTicksLimit: 4
           },
-          grid: { color: '#e4e3de' },
+          grid: { color: '#eae9e5' },
           border: { display: false }
         }
       }
@@ -79,8 +79,8 @@ window.netzeroDashboard.components.Charts = {
         data: {
           labels: months,
           datasets: [
-            { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 0, barPercentage: 0.8, categoryPercentage: 0.85 },
-            { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#dde8f0', borderRadius: 0, barPercentage: 0.8, categoryPercentage: 0.85 }
+            { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 },
+            { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#dde8f0', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
           ]
         },
         options: opts
@@ -94,8 +94,8 @@ window.netzeroDashboard.components.Charts = {
         data: {
           labels: months,
           datasets: [
-            { label: 'Actual', data: data.charts.solar.actual, backgroundColor: '#2e3a4e', borderRadius: 0, barPercentage: 0.8, categoryPercentage: 0.85 },
-            { label: 'Model',  data: data.charts.solar.model,  backgroundColor: '#dde8f0', borderRadius: 0, barPercentage: 0.8, categoryPercentage: 0.85 }
+            { label: 'Actual', data: data.charts.solar.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 },
+            { label: 'Model',  data: data.charts.solar.model,  backgroundColor: '#dde8f0', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
           ]
         },
         options: opts
