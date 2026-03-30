@@ -63,14 +63,14 @@
 }
 
 /* ── Page ──────────────────────────────────────────── */
-.nz-page { width: 100%; padding: 20px 28px 80px; }
+.nz-page { width: 100%; padding: 28px 28px 80px; }
 
 /* ── Page title bar ────────────────────────────────── */
 .nz-page-titlebar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -117,7 +117,7 @@ select.nz-meta-item {
   border: 1px solid var(--nz-200);
   border-radius: 10px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  margin-bottom: 18px;
+  margin-bottom: 24px;
   overflow: hidden;
 }
 .nz-section-hdr {
@@ -149,7 +149,7 @@ select.nz-meta-item {
   color: var(--nz-400);
   margin-top: 1px;
 }
-.nz-section-body { padding: 20px; }
+.nz-section-body { padding: 24px 24px 28px; }
 
 /* ── KPI strip ─────────────────────────────────────── */
 .nz-kpi-strip {
@@ -166,7 +166,7 @@ select.nz-meta-item {
 .nz-kpi-label {
   font-size: 10px; font-weight: 600;
   letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--nz-400); margin-bottom: 6px;
+  color: var(--nz-400); margin-bottom: 10px;
 }
 .nz-kpi-num {
   font-family: 'IBM Plex Mono', monospace;
@@ -177,10 +177,10 @@ select.nz-meta-item {
 .nz-kpi:nth-child(3) .nz-kpi-num { font-size: 24px; color: var(--nz-red); }
 .nz-kpi:nth-child(4) .nz-kpi-num { font-size: 24px; color: var(--nz-500); }
 .nz-kpi-unit {
-  margin-top: 5px; font-size: 10.5px; color: var(--nz-400);
+  margin-top: 8px; font-size: 10.5px; color: var(--nz-400);
   font-family: 'IBM Plex Mono', monospace;
 }
-.nz-kpi-note { margin-top: 5px; font-size: 10.5px; color: var(--nz-500); }
+.nz-kpi-note { margin-top: 6px; font-size: 10.5px; color: var(--nz-500); }
 
 /* Source mix donut */
 .nz-kpi-donut-wrap { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
@@ -210,7 +210,7 @@ select.nz-meta-item {
 .nz-equiv-label {
   font-size: 10px; font-weight: 600;
   letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--nz-400); margin-bottom: 3px;
+  color: var(--nz-400); margin-bottom: 6px;
 }
 .nz-equiv-primary {
   font-family: 'IBM Plex Mono', monospace;
@@ -218,16 +218,16 @@ select.nz-meta-item {
 }
 .nz-equiv-secondary {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 10px; color: var(--nz-400); margin-top: 3px;
+  font-size: 10px; color: var(--nz-400); margin-top: 5px;
 }
-.nz-equiv-sub { font-size: 9.5px; color: var(--nz-400); margin-top: 2px; }
+.nz-equiv-sub { font-size: 9.5px; color: var(--nz-400); margin-top: 3px; }
 
 /* ── Charts ────────────────────────────────────────── */
 .nz-charts-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
+  gap: 24px;
+  margin-bottom: 24px;
 }
 .nz-chart-header {
   display: flex; align-items: baseline; justify-content: space-between;
@@ -241,7 +241,7 @@ select.nz-meta-item {
   text-transform: uppercase; letter-spacing: 0.03em;
 }
 .nz-legend-swatch { width: 14px; height: 3px; border-radius: 2px; }
-.nz-chart-wrap { position: relative; height: 200px; }
+.nz-chart-wrap { position: relative; height: 220px; }
 
 /* ── Detail tables ─────────────────────────────────── */
 .nz-detail-label {
@@ -252,9 +252,9 @@ select.nz-meta-item {
 .nz-tables-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px 40px;
+  gap: 32px 48px;
 }
-.nz-tbl-name { font-size: 11.5px; font-weight: 600; color: var(--nz-600); margin-bottom: 6px; }
+.nz-tbl-name { font-size: 11.5px; font-weight: 600; color: var(--nz-600); margin-bottom: 8px; }
 
 #netzeroDashboard table { width: 100%; border-collapse: collapse; }
 #netzeroDashboard thead th {
@@ -265,7 +265,7 @@ select.nz-meta-item {
 }
 #netzeroDashboard thead th:first-child { text-align: left; }
 #netzeroDashboard tbody td {
-  font-size: 11.5px; padding: 5px 0;
+  font-size: 11.5px; padding: 6px 0;
   border-bottom: 1px solid var(--nz-100);
   text-align: right; font-variant-numeric: tabular-nums;
   color: var(--nz-700);
@@ -303,7 +303,7 @@ select.nz-meta-item {
 
 .nz-meter-table tbody td {
   font-size: 11.5px; color: var(--nz-700);
-  text-align: right; padding: 6px 6px;
+  text-align: right; padding: 7px 6px;
   border-bottom: 1px solid var(--nz-100);
   white-space: nowrap; font-variant-numeric: tabular-nums;
 }
