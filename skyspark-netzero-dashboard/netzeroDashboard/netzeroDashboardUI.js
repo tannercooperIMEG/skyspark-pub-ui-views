@@ -64,7 +64,7 @@ window.netzeroDashboard = window.netzeroDashboard || {};
       attestKey   = session.attestKey();
       projectName = session.proj().name();
     } catch (e) {
-      console.warn('[netzeroDashboard] No SkySpark session — using demo data.');
+      // No SkySpark session — will use demo data
     }
 
     // Read site view variable (Ref)
@@ -84,10 +84,8 @@ window.netzeroDashboard = window.netzeroDashboard || {};
               : (s.charAt(0) === '@' ? s : '@' + s);
           }
           siteRef = _resolveNavRef(axonStr);
-          console.log('[netzeroDashboard] siteRef resolved:', siteRef);
         }
       } catch (e) {
-        console.warn('[netzeroDashboard] Could not read site var:', e);
       }
     }
 
@@ -108,33 +106,6 @@ window.netzeroDashboard = window.netzeroDashboard || {};
     function launch(data) {
       container.innerHTML = '';
       NS.App.init(container, data, ctx);
-
-      // DEBUG: log CSS diagnostics
-      setTimeout(function () {
-        var sec = container.querySelector('.nz-section');
-        if (sec) {
-          var cs = window.getComputedStyle(sec);
-          console.log('[netzeroDashboard] DEBUG .nz-section computed marginBottom:', cs.marginBottom);
-          console.log('[netzeroDashboard] DEBUG .nz-section computed padding:', cs.padding);
-        }
-        var hdr = container.querySelector('.nz-section-hdr');
-        if (hdr) {
-          var hs = window.getComputedStyle(hdr);
-          console.log('[netzeroDashboard] DEBUG .nz-section-hdr computed padding:', hs.padding);
-        }
-        var link = document.getElementById('netzeroDashboardCSS');
-        console.log('[netzeroDashboard] DEBUG CSS href:', link ? link.href : 'NOT FOUND');
-        // Fetch CSS text to confirm content
-        if (link) {
-          fetch(link.href).then(function(r){ return r.text(); }).then(function(t){
-            var has40 = t.indexOf('margin-bottom: 40px') !== -1;
-            var hasMargin0 = t.indexOf('margin: 0') !== -1;
-            console.log('[netzeroDashboard] DEBUG CSS contains "margin-bottom: 40px":', has40);
-            console.log('[netzeroDashboard] DEBUG CSS contains "margin: 0":', hasMargin0);
-            console.log('[netzeroDashboard] DEBUG CSS first 300 chars:', t.substring(0, 300));
-          });
-        }
-      }, 500);
       // Fetch site name in parallel
       if (attestKey && siteRef) {
         NS.api.evalAxon(attestKey, projectName, 'readById(' + siteRef + ').dis')
@@ -163,7 +134,6 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         })
         .catch(function (err) {
           if (gen !== _fetchGen) return;
-          console.warn('[netzeroDashboard] Live data failed, falling back to demo:', err);
           launch(NS.demoData);
         });
     } else {
@@ -172,5 +142,4 @@ window.netzeroDashboard = window.netzeroDashboard || {};
   };
 
   window.netzeroDashboardApp = NS;
-  console.log('[netzeroDashboard] UI module ready.');
 })(window.netzeroDashboard);

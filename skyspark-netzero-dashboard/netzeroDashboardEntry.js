@@ -61,7 +61,6 @@ var netzeroDashboardHandler = {};
       loadModules(function () {
         loaded = true;
         loading = false;
-        console.log('[netzeroDashboard] All modules loaded.');
         pendingCalls.forEach(function (a) { window.netzeroDashboardApp.onUpdate(a); });
         pendingCalls = [];
       });
