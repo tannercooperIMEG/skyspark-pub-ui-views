@@ -11,7 +11,7 @@ window.netzeroDashboard.components.Footer = {
       '    <a href="#">Energy Report</a>',
       '    <a href="#">Data Quality</a>',
       '  </div>',
-      '  <span class="nz-footer-ts">YTD 2026</span>',
+      '  <span>YTD 2026</span>',
       '</footer>'
     ].join('\n');
   }

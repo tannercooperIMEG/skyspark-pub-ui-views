@@ -4,17 +4,24 @@ window.netzeroDashboard.components = window.netzeroDashboard.components || {};
 
 window.netzeroDashboard.components.Charts = {
 
-  _chartCard: function (id, title) {
+  _card: function (id, title, iconColor) {
     return [
-      '<div class="nz-chart-card">',
-      '  <div class="nz-chart-header">',
-      '    <span class="nz-chart-name">' + title + '</span>',
+      '<div class="nz-section">',
+      '  <div class="nz-section-hdr">',
+      '    <div class="nz-section-hdr-left">',
+      '      <div class="nz-section-icon" style="background:' + iconColor + '">',
+      '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="2" width="4" height="19"/></svg>',
+      '      </div>',
+      '      <div class="nz-section-title">' + title + '</div>',
+      '    </div>',
       '    <div class="nz-legend">',
       '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual</span>',
       '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ghost)"></span>Model</span>',
       '    </div>',
       '  </div>',
-      '  <div class="nz-chart-wrap"><canvas id="' + id + '"></canvas></div>',
+      '  <div class="nz-section-body">',
+      '    <div class="nz-chart-wrap"><canvas id="' + id + '"></canvas></div>',
+      '  </div>',
       '</div>'
     ].join('\n');
   },
@@ -22,8 +29,8 @@ window.netzeroDashboard.components.Charts = {
   render: function () {
     return [
       '<div class="nz-charts-grid">',
-      this._chartCard('nzBuildingChart', 'Building consumption'),
-      this._chartCard('nzSolarChart', 'Solar generation'),
+      this._card('nzBuildingChart', 'Building Consumption', 'var(--nz-bar-ink)'),
+      this._card('nzSolarChart', 'Solar Generation', 'var(--nz-green)'),
       '</div>'
     ].join('\n');
   },
@@ -35,11 +42,11 @@ window.netzeroDashboard.components.Charts = {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#181816',
-          titleFont: { family: 'IBM Plex Mono', size: 10 },
-          bodyFont:  { family: 'IBM Plex Mono', size: 11 },
-          padding: 10,
-          cornerRadius: 0,
+          backgroundColor: '#1F2937',
+          titleFont: { size: 11 },
+          bodyFont: { size: 12 },
+          padding: 9,
+          cornerRadius: 5,
           callbacks: {
             label: function (ctx) {
               return ' ' + ctx.dataset.label + ': ' + (ctx.parsed.y / 1000).toFixed(1) + 'k kWh';
@@ -49,17 +56,17 @@ window.netzeroDashboard.components.Charts = {
       },
       scales: {
         x: {
-          ticks: { font: { family: 'IBM Plex Mono', size: 10 }, color: '#a8a7a1' },
+          ticks: { font: { size: 10 }, color: '#9CA3AF' },
           grid: { display: false },
           border: { display: false }
         },
         y: {
           ticks: {
-            font: { family: 'IBM Plex Mono', size: 10 }, color: '#a8a7a1',
+            font: { size: 10 }, color: '#9CA3AF',
             callback: function (v) { return (v / 1000).toFixed(0) + 'k'; },
             maxTicksLimit: 4
           },
-          grid: { color: '#eae9e5' },
+          grid: { color: '#F3F4F6' },
           border: { display: false }
         }
       }
@@ -68,7 +75,7 @@ window.netzeroDashboard.components.Charts = {
 
   initCharts: function (container, data) {
     var C = window.Chart;
-    if (!C) { console.warn('[netzeroDashboard] Chart.js not loaded.'); return; }
+    if (!C) return;
     var months = data.charts.months;
     var opts = this._makeOpts();
 

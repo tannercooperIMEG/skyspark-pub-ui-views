@@ -31,20 +31,12 @@ window.netzeroDashboard.components.DetailTables = {
     return '<tr><td><span class="nz-dot ' + dotCls + '"></span>' + label + '</td>' + cells + '</tr>';
   },
 
-  _diffRow: function (values) {
+  _diffRow: function (label, values) {
     var self = this;
     var cells = values.map(function (v) {
       return '<td class="' + self._diffCls(v) + '">' + self._fmt(v) + '</td>';
     }).join('');
-    return '<tr class="nz-diff-row"><td><span class="nz-dot nz-dot-d"></span>Diff</td>' + cells + '</tr>';
-  },
-
-  _netRow: function (values) {
-    var self = this;
-    var cells = values.map(function (v) {
-      return '<td class="' + self._diffCls(v) + '">' + self._fmt(v) + '</td>';
-    }).join('');
-    return '<tr class="nz-diff-row"><td><span class="nz-dot nz-dot-d"></span>Net</td>' + cells + '</tr>';
+    return '<tr class="nz-diff-row"><td><span class="nz-dot nz-dot-d"></span>' + label + '</td>' + cells + '</tr>';
   },
 
   _table: function (name, months, rows) {
@@ -57,37 +49,28 @@ window.netzeroDashboard.components.DetailTables = {
     var m = d.months;
     var fmtAbs = this._fmtAbs;
 
-    var buildingConsumption = this._table('Building consumption', m, [
-      this._dataRow('nz-dot-a', 'Actual', d.buildingConsumption.actual, fmtAbs),
-      this._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, fmtAbs),
-      this._diffRow(d.buildingConsumption.diff)
-    ]);
-
-    var solarGeneration = this._table('Solar generation', m, [
-      this._dataRow('nz-dot-a', 'Actual', d.solarGeneration.actual, fmtAbs),
-      this._dataRow('nz-dot-m', 'Model',  d.solarGeneration.model, fmtAbs),
-      this._diffRow(d.solarGeneration.diff)
-    ]);
-
-    var actualNetZero = this._table('Actual net zero', m, [
-      this._dataRow('nz-dot-a', 'Building', d.actualNetZero.building, fmtAbs),
-      this._dataRow('nz-dot-m', 'Solar',    d.actualNetZero.solar, fmtAbs),
-      this._netRow(d.actualNetZero.net)
-    ]);
-
-    var modeledNetZero = this._table('Modeled net zero', m, [
-      this._dataRow('nz-dot-a', 'Building', d.modeledNetZero.building, fmtAbs),
-      this._dataRow('nz-dot-m', 'Solar',    d.modeledNetZero.solar, fmtAbs),
-      this._netRow(d.modeledNetZero.net)
-    ]);
-
     return [
-      '<div class="nz-section-rule">Actual vs. Modeled detail</div>',
       '<div class="nz-tables-grid">',
-      buildingConsumption,
-      solarGeneration,
-      actualNetZero,
-      modeledNetZero,
+      this._table('Building consumption', m, [
+        this._dataRow('nz-dot-a', 'Actual', d.buildingConsumption.actual, fmtAbs),
+        this._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, fmtAbs),
+        this._diffRow('Diff', d.buildingConsumption.diff)
+      ]),
+      this._table('Solar generation', m, [
+        this._dataRow('nz-dot-a', 'Actual', d.solarGeneration.actual, fmtAbs),
+        this._dataRow('nz-dot-m', 'Model',  d.solarGeneration.model, fmtAbs),
+        this._diffRow('Diff', d.solarGeneration.diff)
+      ]),
+      this._table('Actual net zero', m, [
+        this._dataRow('nz-dot-a', 'Building', d.actualNetZero.building, fmtAbs),
+        this._dataRow('nz-dot-m', 'Solar',    d.actualNetZero.solar, fmtAbs),
+        this._diffRow('Net', d.actualNetZero.net)
+      ]),
+      this._table('Modeled net zero', m, [
+        this._dataRow('nz-dot-a', 'Building', d.modeledNetZero.building, fmtAbs),
+        this._dataRow('nz-dot-m', 'Solar',    d.modeledNetZero.solar, fmtAbs),
+        this._diffRow('Net', d.modeledNetZero.net)
+      ]),
       '</div>'
     ].join('\n');
   }
