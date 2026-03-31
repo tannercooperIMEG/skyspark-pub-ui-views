@@ -110,7 +110,38 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
       diff = actual.map(function () { return 0; });
     }
 
-    return { months: months, actual: actual, model: model, diff: diff };
+    // Pad to 12 months so the view always shows a full year
+    var ALL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var padded = _padTo12(ALL_MONTHS, months, { actual: actual, model: model, diff: diff });
+
+    return padded;
+  }
+
+  /**
+   * Pad parsed monthly data to a full 12-month array.
+   * Maps existing data into the correct month slots; fills gaps with null.
+   */
+  function _padTo12(allMonths, dataMonths, series) {
+    // Build a lookup: short month name -> index in dataMonths
+    var lookup = {};
+    for (var i = 0; i < dataMonths.length; i++) {
+      lookup[dataMonths[i]] = i;
+    }
+
+    var result = { months: allMonths, actual: [], model: [], diff: [] };
+    for (var m = 0; m < allMonths.length; m++) {
+      var idx = lookup[allMonths[m]];
+      if (idx !== undefined) {
+        result.actual.push(series.actual[idx]);
+        result.model.push(series.model[idx]);
+        result.diff.push(series.diff[idx]);
+      } else {
+        result.actual.push(null);
+        result.model.push(null);
+        result.diff.push(null);
+      }
+    }
+    return result;
   }
 
   /**

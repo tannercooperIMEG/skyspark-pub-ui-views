@@ -70,7 +70,7 @@ window.netzeroDashboard.components.Charts = {
       var netZeroTable = DT._table('Net zero', d.months, [
         DT._dataRow('nz-dot-a', 'Actual', d.actualNetZero.net, DT._fmt),
         DT._dataRow('nz-dot-m', 'Modeled', d.modeledNetZero.net, DT._fmt),
-        DT._diffRow('Diff', d.actualNetZero.net.map(function (v, i) { return v - (d.modeledNetZero.net[i] || 0); }))
+        DT._diffRow('Diff', d.actualNetZero.net.map(function (v, i) { return (v === null || d.modeledNetZero.net[i] === null) ? null : v - (d.modeledNetZero.net[i] || 0); }))
       ]);
       netZeroContent = [
         '<div class="nz-chart-card">',
