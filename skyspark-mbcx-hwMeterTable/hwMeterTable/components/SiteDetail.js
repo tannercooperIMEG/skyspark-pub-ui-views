@@ -64,6 +64,30 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     return null;
   }
 
+  /**
+   * Best display name for a history column.
+   * Haystack hisRead columns carry their point record in col.meta.
+   * The navName field is the shortest useful label ("Hot Water kBTU/h");
+   * fall back through dis → id.dis → raw column name.
+   */
+  function colDis(col) {
+    if (!col.meta) return col.name;
+    if (col.meta.navName)            return col.meta.navName;
+    if (col.meta.dis)                return col.meta.dis;
+    if (col.meta.id && col.meta.id.dis) return col.meta.id.dis;
+    return col.name;
+  }
+
+  /**
+   * Unit string for a history column.
+   * col.meta.unit is a plain string ("kBTU/h") set by SkySpark on every
+   * hisRead column — more reliable than scanning sparse row values.
+   */
+  function colUnit(col) {
+    if (col.meta && typeof col.meta.unit === 'string') return col.meta.unit;
+    return null;
+  }
+
   // ── SVG line chart engine ─────────────────────────────────────────────────
   // Returns a .hw-chart-card element containing title + SVG + hover tooltip.
   // series: [{ name, color, unit, values: [number|null] }]
@@ -284,21 +308,23 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     var timestamps = rows.map(function (r) { return parseTS(r.ts); });
 
     var seriesList = valCols.map(function (col, idx) {
-      var unit = null;
+      // Unit: prefer col.meta.unit (always present on hisRead cols); fall back
+      // to scanning row values for grids that don't carry it on the column.
+      var unit = colUnit(col);
       var values = rows.map(function (r) {
         var v = r[col.name];
         if (!unit) unit = extractUnit(v);
         return extractNum(v);
       });
       return {
-        name:   (col.meta && col.meta.dis) ? col.meta.dis : col.name,
+        name:   colDis(col),
         unit:   unit,
         values: values,
         color:  SERIES_COLORS[idx % SERIES_COLORS.length]
       };
     });
 
-    // Group by unit
+    // Group by unit — produces one chart per unit (kBTU/h, °F, gal/min, kBTU, …)
     var groups = {}, groupOrder = [];
     seriesList.forEach(function (s) {
       var key = s.unit || 'Other';
@@ -418,16 +444,18 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     var timestamps = rows.map(function (r) { return parseTS(r.ts); });
 
     var seriesList = valCols.map(function (col) {
-      var unit = null;
+      var unit = colUnit(col);
       var values = rows.map(function (r) {
         var v = r[col.name];
         if (!unit) unit = extractUnit(v);
         return extractNum(v);
       });
       var lname = col.name.toLowerCase();
-      var isRaw = lname.indexOf('raw') !== -1 || lname.indexOf('orig') !== -1 || lname.indexOf('untreat') !== -1;
+      var dis   = colDis(col).toLowerCase();
+      var isRaw = lname.indexOf('raw') !== -1 || lname.indexOf('orig') !== -1 || lname.indexOf('untreat') !== -1
+               || dis.indexOf('raw')  !== -1 || dis.indexOf('orig')  !== -1 || dis.indexOf('untreat')  !== -1;
       return {
-        name:    (col.meta && col.meta.dis) ? col.meta.dis : col.name,
+        name:    colDis(col),
         colName: col.name,
         unit:    unit,
         values:  values,
@@ -619,7 +647,19 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       loadEl.textContent = 'Loading ' + tab.label + '\u2026';
       tabPane.appendChild(loadEl);
 
-      evals.loadDetailPage(opts.attestKey, opts.projectName, opts.siteId, opts.dates, tabKey)
+      var promise;
+      try {
+        promise = evals.loadDetailPage(opts.attestKey, opts.projectName, opts.siteId, opts.dates, tabKey);
+      } catch (syncErr) {
+        // evals.loadDetailPage not defined (module not loaded) or other sync throw
+        console.error('[hwMeterTable] Detail tab "' + tabKey + '" sync error:', syncErr);
+        tabCache[tabKey] = syncErr;
+        tabPane.innerHTML = '';
+        showTabError(tabPane, tab.label, syncErr);
+        return;
+      }
+
+      promise
         .then(function (grid) {
           tabCache[tabKey] = grid;
           if (activeKey !== tabKey) return;
