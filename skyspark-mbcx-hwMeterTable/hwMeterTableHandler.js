@@ -1,11 +1,11 @@
-// earlhamHWTable/earlhamHWTableHandler.js
+// hwMeterTable/hwMeterTableHandler.js
 //
 // Main handler module — orchestrates stylesheet injection, variable reading,
-// data loading, and table rendering. Loaded dynamically by earlhamHWTableEntry.js.
+// data loading, and table rendering. Loaded dynamically by hwMeterTableEntry.js.
 //
-// At startup this file exposes window.earlhamHWTableApp, which the entry
+// At startup this file exposes window.hwMeterTableApp, which the entry
 // file delegates to. The name MUST differ from the entry file's jsHandler
-// global ("earlhamHWTableHandler") to avoid collision.
+// global ("hwMeterTableHandler") to avoid collision.
 //
 // Re-render behaviour:
 //   onUpdate is called by SkySpark on every view refresh (including variable
@@ -13,16 +13,16 @@
 //   onUpdate so variable changes always trigger a new fetch. A fetch-generation
 //   counter ensures stale in-flight responses are silently discarded.
 
-window.earlhamHWTable = window.earlhamHWTable || {};
+window.hwMeterTable = window.hwMeterTable || {};
 
 (function (app) {
-  var utils      = window.earlhamHWTable.utils;
-  var evals      = window.earlhamHWTable.evals;
-  var components = window.earlhamHWTable.components;
+  var utils      = window.hwMeterTable.utils;
+  var evals      = window.hwMeterTable.evals;
+  var components = window.hwMeterTable.components;
 
-  var APP_ID   = 'earlhamHWTable-root';
-  var CSS_ID   = 'earlhamHWTable-styles';
-  var CSS_PATH = '/pub/ui/earlhamHWTable/earlhamHWTableStyles.css';
+  var APP_ID   = 'hwMeterTable-root';
+  var CSS_ID   = 'hwMeterTable-styles';
+  var CSS_PATH = '/pub/ui/hwMeterTable/hwMeterTableStyles.css';
 
   // Incremented on every new fetch; callbacks compare against this to discard
   // responses that were superseded by a later variable change.
@@ -112,7 +112,7 @@ window.earlhamHWTable = window.earlhamHWTable || {};
         errEl.className   = 'hw-table-error';
         errEl.textContent = 'Error loading data: ' + err.message;
         tableContainer.appendChild(errEl);
-        console.error('[earlhamHWTable] Error:', err);
+        console.error('[hwMeterTable] Error:', err);
       });
   }
 
@@ -153,7 +153,7 @@ window.earlhamHWTable = window.earlhamHWTable || {};
     var targets = tryReadVar(view, 'targets') || (parentView && tryReadVar(parentView, 'targets')) || '@nav:equip.all';
     var dates   = tryReadVar(view, 'dates')   || (parentView && tryReadVar(parentView, 'dates'))   || 'pastMonth';
 
-    console.log('[earlhamHWTable] onUpdate — targets:', targets, '| dates:', dates);
+    console.log('[hwMeterTable] onUpdate — targets:', targets, '| dates:', dates);
 
     // ── Build scaffold once, then always refresh data ─────────────────────────
     var root = elem.querySelector('#' + APP_ID);
@@ -179,9 +179,9 @@ window.earlhamHWTable = window.earlhamHWTable || {};
     refreshData(tableContainer, attestKey, projectName, targets, dates);
   };
 
-})(window.earlhamHWTable);
+})(window.hwMeterTable);
 
 // Expose the app global that the entry file delegates to.
 // CRITICAL: must differ from the entry file's jsHandler global name.
-window.earlhamHWTableApp = window.earlhamHWTable;
-console.log('[earlhamHWTable] Handler ready. window.earlhamHWTableApp exposed.');
+window.hwMeterTableApp = window.hwMeterTable;
+console.log('[hwMeterTable] Handler ready. window.hwMeterTableApp exposed.');

@@ -1,4 +1,4 @@
-// earlhamHWTable/components/SiteTable.js
+// hwMeterTable/components/SiteTable.js
 // Renders the demand data grid as a dynamic multi-column table.
 // Columns and their display names are driven by grid metadata.
 //
@@ -15,11 +15,11 @@
 // Both Haystack Number objects and pre-formatted strings ("1,667") are parsed
 // for numeric operations (KPI totals).
 
-window.earlhamHWTable = window.earlhamHWTable || {};
-window.earlhamHWTable.components = window.earlhamHWTable.components || {};
+window.hwMeterTable = window.hwMeterTable || {};
+window.hwMeterTable.components = window.hwMeterTable.components || {};
 
 (function (components) {
-  var utils = window.earlhamHWTable.utils;
+  var utils = window.hwMeterTable.utils;
 
   /** Returns true if a column's meta carries the {hidden} marker. */
   function isHidden(colMeta) {
@@ -281,7 +281,7 @@ window.earlhamHWTable.components = window.earlhamHWTable.components || {};
     var cellColors = buildCellColors(gridData);
 
     // Diagnostic: log visible columns and active meta flags
-    console.log('[earlhamHWTable] Visible columns:',
+    console.log('[hwMeterTable] Visible columns:',
       visibleCols.map(function (col) {
         var flags = [];
         if (hasTotal(col.meta))           flags.push('total');
@@ -389,4 +389,4 @@ window.earlhamHWTable.components = window.earlhamHWTable.components || {};
     // The tfoot CSS rules remain available for optional use.
   };
 
-})(window.earlhamHWTable.components);
+})(window.hwMeterTable.components);
