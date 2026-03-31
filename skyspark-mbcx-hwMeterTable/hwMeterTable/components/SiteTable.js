@@ -410,8 +410,61 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
     table.appendChild(tbody);
 
-    // Note: totals are displayed as KPI cards above the table.
-    // The tfoot CSS rules remain available for optional use.
+    // ── Totals footer ─────────────────────────────────────────────────────────
+    if (rows.length > 0) {
+      // Sum every numeric column across all rows
+      var colSums = {};
+      var colUnits = {};
+      visibleCols.forEach(function (col) {
+        if (col.name === 'id') return;
+        var sum = null;
+        rows.forEach(function (row) {
+          var n = parseNumericVal(row[col.name]);
+          if (n !== null) sum = (sum || 0) + n;
+        });
+        colSums[col.name] = sum;
+        // Capture unit from the first non-null value
+        for (var i = 0; i < rows.length; i++) {
+          var v = rows[i][col.name];
+          if (v && typeof v === 'object' && v._kind === 'number' && v.unit) {
+            colUnits[col.name] = v.unit;
+            break;
+          }
+        }
+      });
+
+      // Spacer tbody — creates the visual gap above the totals row
+      var spacerTbody = document.createElement('tbody');
+      var spacerTr    = document.createElement('tr');
+      var spacerTd    = document.createElement('td');
+      spacerTd.colSpan   = visibleCols.length;
+      spacerTd.className = 'hw-totals-spacer-cell';
+      spacerTr.appendChild(spacerTd);
+      spacerTbody.appendChild(spacerTr);
+      table.appendChild(spacerTbody);
+
+      // Totals row
+      var tfoot   = document.createElement('tfoot');
+      var footRow = document.createElement('tr');
+
+      visibleCols.forEach(function (col) {
+        var td = document.createElement('td');
+        if (col.name === 'id') {
+          td.textContent = 'Total';
+          td.className   = 'hw-total-label';
+        } else if (colSums[col.name] !== null && colSums[col.name] !== undefined) {
+          var unit = colUnits[col.name] || '';
+          td.textContent = Math.round(colSums[col.name]).toLocaleString() + (unit ? '\u00a0' + unit : '');
+          td.className   = 'hw-total-value';
+        } else {
+          td.textContent = '\u2014';
+        }
+        footRow.appendChild(td);
+      });
+
+      tfoot.appendChild(footRow);
+      table.appendChild(tfoot);
+    }
   };
 
 })(window.hwMeterTable.components);

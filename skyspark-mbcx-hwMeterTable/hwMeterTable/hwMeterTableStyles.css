@@ -222,17 +222,36 @@
   background-color: #cce0ef;
 }
 
-/* ── Totals footer — IMEG Orient Blue ───────────────────── */
+/* ── Totals spacer row ───────────────────────────────────── */
+
+#hwMeterTable-root .hw-totals-spacer-cell {
+  height: 50px;
+  background: transparent;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-top: none !important;
+}
+
+/* ── Totals footer ───────────────────────────────────────── */
 
 #hwMeterTable-root .hw-site-table tfoot tr {
-  background-color: #01538b;
+  background-color: #0e2d45;
   color: #ffffff;
   font-weight: 700;
   font-size: 13px;
 }
 
 #hwMeterTable-root .hw-site-table tfoot td {
-  border-top: 2px solid #003d68;
+  border: 1px solid #092030;
+  padding: 8px 10px;
+}
+
+#hwMeterTable-root .hw-site-table tfoot td.hw-total-label {
+  text-align: left;
+  font-style: italic;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 #hwMeterTable-root .hw-site-table tfoot td.hw-total-value {
