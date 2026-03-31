@@ -46,6 +46,13 @@ window.hwMeterTable.evals = window.hwMeterTable.evals || {};
           var msg = grid.meta.dis ? String(grid.meta.dis) : 'SkySpark error grid';
           throw new Error('[loadDetailPage/' + mode + '] ' + msg);
         }
+        // Detect unwrapped-but-still-empty: cols:[] means unwrapGrid got a 0-row wrapper
+        if (!grid.cols || grid.cols.length === 0) {
+          throw new Error(
+            '[loadDetailPage/' + mode + '] view_pubUI_helper_DetailPage returned no grid — ' +
+            'verify the function exists on the server and accepts (ref, dateRange, str) parameters'
+          );
+        }
         console.log('[hwMeterTable] DetailPage "' + mode + '" cols:',
           (grid.cols || []).map(function (c) { return c.name; }),
           '| rows:', (grid.rows || []).length);
