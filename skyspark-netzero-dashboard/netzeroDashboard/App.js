@@ -97,7 +97,7 @@ window.netzeroDashboard = window.netzeroDashboard || {};
 
         // Monthly Trends (charts + detail tables) — collapsible, default open
         section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
-          'Building consumption &amp; solar generation &amp; net zero <span class="nz-status-badge nz-status-badge--wip">In Progress</span>',
+          '',
           co.Charts.render(data),
           { collapsible: true, open: true, accentColor: '#2e3a4e' }),
 

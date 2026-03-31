@@ -208,7 +208,16 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
       // Track which sections have live data (vs no data returned)
       data._live = { building: !!buildingData, solar: !!solarData, netZero: !!netZeroData, kpi: !!kpiData };
 
-      // Override KPIs if we have live data
+      // Clear KPI demo data — show blanks for anything not provided by live eval
+      data.kpis.buildingUsage = null;
+      data.kpis.solarGeneration = null;
+      data.kpis.netPerformance = null;
+      data.kpis.coverageRatio = null;
+      data.kpis.surplusNote = '';
+      data.kpis.sourceMix = { water: null, wind: null, fossil: null };
+      data.equiv = { trees: { total: null, unit: '', monthly: null }, water: { total: null, unit: '', monthly: null }, gas: { total: null, unit: '', monthly: null }, methane: { total: null, unit: '', monthly: null } };
+
+      // Fill in KPIs from live data
       if (kpiData) {
         var bldg = kpiData.buildingUsage || 0;
         var sol  = kpiData.solarGeneration || 0;

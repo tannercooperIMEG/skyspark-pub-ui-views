@@ -43,23 +43,25 @@ window.netzeroDashboard.components.KpiStrip = {
       // 4 — Coverage ratio
       '  <div class="nz-kpi">',
       '    <div class="nz-kpi-label">Coverage ratio</div>',
-      '    <div class="nz-kpi-num">' + k.coverageRatio + '%</div>',
+      '    <div class="nz-kpi-num">' + (k.coverageRatio !== null ? k.coverageRatio + '%' : '\u2014') + '</div>',
       '    <div class="nz-kpi-unit">solar / building usage</div>',
       '  </div>',
 
       // 5 — Source mix (donut rendered after DOM insert)
       '  <div class="nz-kpi">',
       '    <div class="nz-kpi-label">Source mix</div>',
-      '    <div class="nz-kpi-with-donut">',
-      '      <div class="nz-kpi-donut-wrap"><canvas id="nzSourceMixDonut"></canvas></div>',
-      '      <div>',
-      '        <div class="nz-kpi-donut-legend">',
-      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#1a6e3f"></span>Water ' + mix.water + '%</div>',
-      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#a8c97e"></span>Wind ' + mix.wind + '%</div>',
-      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#5c5c58"></span>Fossil ' + mix.fossil + '%</div>',
-      '        </div>',
-      '      </div>',
-      '    </div>',
+      (mix.water !== null ?
+      '    <div class="nz-kpi-with-donut">' +
+      '      <div class="nz-kpi-donut-wrap"><canvas id="nzSourceMixDonut"></canvas></div>' +
+      '      <div>' +
+      '        <div class="nz-kpi-donut-legend">' +
+      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#1a6e3f"></span>Water ' + mix.water + '%</div>' +
+      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#a8c97e"></span>Wind ' + mix.wind + '%</div>' +
+      '          <div class="nz-kpi-donut-legend-item"><span class="nz-kpi-donut-swatch" style="background:#5c5c58"></span>Fossil ' + mix.fossil + '%</div>' +
+      '        </div>' +
+      '      </div>' +
+      '    </div>'
+      : '    <div class="nz-kpi-num">\u2014</div>'),
       '  </div>',
 
       '</div>'
