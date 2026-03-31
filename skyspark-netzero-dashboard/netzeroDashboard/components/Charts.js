@@ -160,7 +160,8 @@ window.netzeroDashboard.components.Charts = {
     var self = this;
     var months = data.charts.months;
     var opts = this._makeOpts();
-    var greenColor = '#5C8A3C';
+    // pastel green for model bars (dark ink stays for actual)
+    var greenColor = '#8FB574';
     var live = data._live || {};
 
     // Building chart
@@ -173,7 +174,7 @@ window.netzeroDashboard.components.Charts = {
             labels: months,
             datasets: [
               { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 },
-              { label: 'Model',  data: data.charts.building.model,  backgroundColor: greenColor, borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
+              { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#8FB574', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
             ]
           },
           options: opts
@@ -191,7 +192,7 @@ window.netzeroDashboard.components.Charts = {
             labels: months,
             datasets: [
               { label: 'Actual', data: data.charts.solar.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 },
-              { label: 'Model',  data: data.charts.solar.model,  backgroundColor: greenColor, borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
+              { label: 'Model',  data: data.charts.solar.model,  backgroundColor: '#8FB574', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
             ]
           },
           options: opts
@@ -215,7 +216,7 @@ window.netzeroDashboard.components.Charts = {
             labels: months,
             datasets: [
               { label: 'Actual Net', data: actualNet, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 },
-              { label: 'Modeled Net', data: modeledNet, backgroundColor: greenColor, borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
+              { label: 'Modeled Net', data: modeledNet, backgroundColor: '#8FB574', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
             ]
           },
           options: self._makeOpts()

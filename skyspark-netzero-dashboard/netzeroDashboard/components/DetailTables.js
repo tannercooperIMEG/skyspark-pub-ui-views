@@ -41,6 +41,7 @@ window.netzeroDashboard.components.DetailTables = {
 
   _table: function (name, months, rows) {
     return '<div><div class="nz-tbl-name">' + name + '</div><table>' +
+      '<col class="nz-col-label">' +
       this._thRow(months) + '<tbody>' + rows.join('') + '</tbody></table></div>';
   },
 
