@@ -40,6 +40,8 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
    */
   function _parseMonthlyGrid(rawGrid) {
     if (!rawGrid || !rawGrid.cols || !rawGrid.rows || rawGrid.rows.length === 0) return null;
+    // Skip error grids returned by SkySpark
+    if (rawGrid.meta && rawGrid.meta.err) return null;
 
     // Extract month labels from column meta.dis (skip first col which is "dis"/row label)
     var months = [];
