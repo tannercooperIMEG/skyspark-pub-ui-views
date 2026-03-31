@@ -281,6 +281,37 @@ select.nz-meta-item {
 }
 .nz-equiv-sub { font-size: 9.5px; color: var(--nz-400); margin-top: 3px; }
 
+/* ── Toggle bar (matches mbcx toggle-bar) ─────────── */
+.nz-toggle-bar {
+  display: flex !important;
+  gap: 0 !important;
+  margin-bottom: 20px !important;
+  border: 1px solid var(--nz-200) !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  width: fit-content !important;
+}
+.nz-toggle-btn {
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  color: var(--nz-500) !important;
+  background: #fff !important;
+  border: none !important;
+  border-right: 1px solid var(--nz-200) !important;
+  padding: 6px 18px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+  white-space: nowrap !important;
+}
+.nz-toggle-btn:last-child { border-right: none !important; }
+.nz-toggle-btn:hover { background: var(--nz-50) !important; color: var(--nz-700) !important; }
+.nz-toggle-btn--active { background: var(--nz-blue) !important; color: #fff !important; }
+
+/* ── Trend tabs (show/hide) ───────────────────────── */
+.nz-trend-tab { display: none; }
+.nz-trend-tab--active { display: block !important; }
+.nz-trend-detail { margin-top: 20px !important; }
+
 /* ── Charts ────────────────────────────────────────── */
 .nz-charts-grid {
   display: grid;

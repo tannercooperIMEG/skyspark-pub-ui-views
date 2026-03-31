@@ -95,17 +95,11 @@ window.netzeroDashboard = window.netzeroDashboard || {};
           overviewBody,
           { collapsible: true, open: true, accentColor: '#4A6FA5' }),
 
-        // Monthly Trends (charts) — collapsible, default open
+        // Monthly Trends (charts + detail tables) — collapsible, default open
         section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
-          'Building consumption &amp; solar generation',
-          co.Charts.render(),
+          'Building consumption &amp; solar generation &amp; net zero',
+          co.Charts.render(data),
           { collapsible: true, open: true, accentColor: '#2e3a4e' }),
-
-        // Detail tables — collapsible, default collapsed
-        section(ICONS.table, 'var(--nz-purple)', 'Actual vs. Modeled Detail',
-          'Monthly comparison tables',
-          co.DetailTables.render(data),
-          { collapsible: true, open: false, accentColor: '#6366F1' }),
 
         // Meter breakdown — collapsible, default collapsed
         section(ICONS.meter, 'var(--nz-amber)', 'Meter Breakdown',

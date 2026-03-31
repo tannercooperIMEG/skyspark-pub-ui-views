@@ -1,34 +1,98 @@
 // components/Charts.js
+// Monthly Trends with toggle (Building / Solar / Net Zero), chart + detail table per tab
 window.netzeroDashboard = window.netzeroDashboard || {};
 window.netzeroDashboard.components = window.netzeroDashboard.components || {};
 
 window.netzeroDashboard.components.Charts = {
 
-  _card: function (id, title) {
+  render: function (data) {
+    var d = data.detail;
+    var DT = window.netzeroDashboard.components.DetailTables;
+
+    // Building table
+    var buildingTable = DT._table('Building consumption', d.months, [
+      DT._dataRow('nz-dot-a', 'Actual', d.buildingConsumption.actual, DT._fmtAbs),
+      DT._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, DT._fmtAbs),
+      DT._diffRow('Diff', d.buildingConsumption.diff)
+    ]);
+
+    // Solar table
+    var solarTable = DT._table('Solar generation', d.months, [
+      DT._dataRow('nz-dot-a', 'Actual', d.solarGeneration.actual, DT._fmtAbs),
+      DT._dataRow('nz-dot-m', 'Model',  d.solarGeneration.model, DT._fmtAbs),
+      DT._diffRow('Diff', d.solarGeneration.diff)
+    ]);
+
+    // Net Zero table (actual vs modeled side by side)
+    var netZeroTable = '<div class="nz-tables-grid">' +
+      DT._table('Actual net zero', d.months, [
+        DT._dataRow('nz-dot-a', 'Building', d.actualNetZero.building, DT._fmtAbs),
+        DT._dataRow('nz-dot-m', 'Solar',    d.actualNetZero.solar, DT._fmtAbs),
+        DT._diffRow('Net', d.actualNetZero.net)
+      ]) +
+      DT._table('Modeled net zero', d.months, [
+        DT._dataRow('nz-dot-a', 'Building', d.modeledNetZero.building, DT._fmtAbs),
+        DT._dataRow('nz-dot-m', 'Solar',    d.modeledNetZero.solar, DT._fmtAbs),
+        DT._diffRow('Net', d.modeledNetZero.net)
+      ]) + '</div>';
+
+    var legend = [
+      '<div class="nz-legend">',
+      '  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual</span>',
+      '  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-green)"></span>Model</span>',
+      '</div>'
+    ].join('');
+
     return [
-      '<div class="nz-chart-card">',
-      '  <div class="nz-chart-header">',
-      '    <div class="nz-chart-name">' + title + '</div>',
-      '    <div class="nz-legend">',
-      '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual</span>',
-      '      <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ghost)"></span>Model</span>',
+      // Toggle bar
+      '<div class="nz-toggle-bar" id="nzTrendsToggle">',
+      '  <button class="nz-toggle-btn nz-toggle-btn--active" data-nz-tab="building">Building</button>',
+      '  <button class="nz-toggle-btn" data-nz-tab="solar">Solar</button>',
+      '  <button class="nz-toggle-btn" data-nz-tab="netzero">Net Zero</button>',
+      '</div>',
+
+      // Building tab (default visible)
+      '<div class="nz-trend-tab nz-trend-tab--active" data-nz-panel="building">',
+      '  <div class="nz-chart-card">',
+      '    <div class="nz-chart-header">',
+      '      <div class="nz-chart-name">Building Consumption</div>',
+      legend,
       '    </div>',
+      '    <div class="nz-chart-wrap"><canvas id="nzBuildingChart"></canvas></div>',
       '  </div>',
-      '  <div class="nz-chart-wrap"><canvas id="' + id + '"></canvas></div>',
+      '  <div class="nz-trend-detail">' + buildingTable + '</div>',
+      '</div>',
+
+      // Solar tab
+      '<div class="nz-trend-tab" data-nz-panel="solar">',
+      '  <div class="nz-chart-card">',
+      '    <div class="nz-chart-header">',
+      '      <div class="nz-chart-name">Solar Generation</div>',
+      legend,
+      '    </div>',
+      '    <div class="nz-chart-wrap"><canvas id="nzSolarChart"></canvas></div>',
+      '  </div>',
+      '  <div class="nz-trend-detail">' + solarTable + '</div>',
+      '</div>',
+
+      // Net Zero tab
+      '<div class="nz-trend-tab" data-nz-panel="netzero">',
+      '  <div class="nz-chart-card">',
+      '    <div class="nz-chart-header">',
+      '      <div class="nz-chart-name">Net Zero &mdash; Actual vs. Modeled</div>',
+      '      <div class="nz-legend">',
+      '        <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual Net</span>',
+      '        <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-green)"></span>Modeled Net</span>',
+      '      </div>',
+      '    </div>',
+      '    <div class="nz-chart-wrap"><canvas id="nzNetZeroChart"></canvas></div>',
+      '  </div>',
+      '  <div class="nz-trend-detail">' + netZeroTable + '</div>',
       '</div>'
     ].join('\n');
   },
 
-  render: function () {
-    return [
-      '<div class="nz-charts-grid">',
-      this._card('nzBuildingChart', 'Building Consumption'),
-      this._card('nzSolarChart', 'Solar Generation'),
-      '</div>'
-    ].join('\n');
-  },
-
-  _makeOpts: function () {
+  _makeOpts: function (allowNegative) {
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -57,7 +121,7 @@ window.netzeroDashboard.components.Charts = {
           ticks: {
             font: { size: 10 }, color: '#9CA3AF',
             callback: function (v) { return (v / 1000).toFixed(0) + 'k'; },
-            maxTicksLimit: 4
+            maxTicksLimit: 5
           },
           grid: { color: '#F3F4F6' },
           border: { display: false }
@@ -69,9 +133,12 @@ window.netzeroDashboard.components.Charts = {
   initCharts: function (container, data) {
     var C = window.Chart;
     if (!C) return;
+    var self = this;
     var months = data.charts.months;
     var opts = this._makeOpts();
+    var greenColor = '#5C8A3C';
 
+    // Building chart
     var bEl = container.querySelector('#nzBuildingChart');
     if (bEl) {
       new C(bEl, {
@@ -80,13 +147,14 @@ window.netzeroDashboard.components.Charts = {
           labels: months,
           datasets: [
             { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 },
-            { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#dde8f0', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
+            { label: 'Model',  data: data.charts.building.model,  backgroundColor: greenColor, borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
           ]
         },
         options: opts
       });
     }
 
+    // Solar chart
     var sEl = container.querySelector('#nzSolarChart');
     if (sEl) {
       new C(sEl, {
@@ -95,10 +163,59 @@ window.netzeroDashboard.components.Charts = {
           labels: months,
           datasets: [
             { label: 'Actual', data: data.charts.solar.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 },
-            { label: 'Model',  data: data.charts.solar.model,  backgroundColor: '#dde8f0', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
+            { label: 'Model',  data: data.charts.solar.model,  backgroundColor: greenColor, borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
           ]
         },
         options: opts
+      });
+    }
+
+    // Net Zero chart — actual net vs modeled net
+    var nEl = container.querySelector('#nzNetZeroChart');
+    if (nEl) {
+      // Compute actual net = building - solar, modeled net = modeled building - modeled solar
+      var actualNet = [];
+      var modeledNet = [];
+      for (var i = 0; i < months.length; i++) {
+        actualNet.push(data.charts.building.actual[i] - data.charts.solar.actual[i]);
+        modeledNet.push(data.charts.building.model[i] - data.charts.solar.model[i]);
+      }
+      new C(nEl, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [
+            { label: 'Actual Net', data: actualNet, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 },
+            { label: 'Modeled Net', data: modeledNet, backgroundColor: greenColor, borderRadius: 2, barPercentage: 0.75, categoryPercentage: 0.8 }
+          ]
+        },
+        options: self._makeOpts(true)
+      });
+    }
+
+    // Bind toggle buttons
+    var toggleBar = container.querySelector('#nzTrendsToggle');
+    if (toggleBar) {
+      toggleBar.addEventListener('click', function (e) {
+        var btn = e.target.closest('.nz-toggle-btn');
+        if (!btn) return;
+        var tab = btn.getAttribute('data-nz-tab');
+
+        // Update active button
+        var btns = toggleBar.querySelectorAll('.nz-toggle-btn');
+        for (var i = 0; i < btns.length; i++) btns[i].classList.remove('nz-toggle-btn--active');
+        btn.classList.add('nz-toggle-btn--active');
+
+        // Show/hide panels
+        var section = toggleBar.closest('.nz-section-body') || toggleBar.parentNode;
+        var panels = section.querySelectorAll('.nz-trend-tab');
+        for (var j = 0; j < panels.length; j++) {
+          if (panels[j].getAttribute('data-nz-panel') === tab) {
+            panels[j].classList.add('nz-trend-tab--active');
+          } else {
+            panels[j].classList.remove('nz-trend-tab--active');
+          }
+        }
       });
     }
   }
