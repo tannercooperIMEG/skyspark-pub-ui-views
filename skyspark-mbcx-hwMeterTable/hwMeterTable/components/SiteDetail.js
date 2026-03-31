@@ -66,15 +66,24 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
   /**
    * Best display name for a history column.
-   * Haystack hisRead columns carry their point record in col.meta.
-   * The navName field is the shortest useful label ("Hot Water kBTU/h");
-   * fall back through dis → id.dis → raw column name.
+   * Prefer id.dis (unique per point) with the siteRef.dis prefix stripped so
+   * the label reads "Hot Water Meter 1 Supply Temperature" rather than
+   * "Barrett Hall Hot Water Meter 1  Hot Water Supply Temperature".
+   * navName is NOT used as primary because multiple columns in the same unit
+   * group often share the same navName (e.g. two "Hot Water kBTU/h" columns).
    */
   function colDis(col) {
     if (!col.meta) return col.name;
-    if (col.meta.navName)            return col.meta.navName;
-    if (col.meta.dis)                return col.meta.dis;
-    if (col.meta.id && col.meta.id.dis) return col.meta.id.dis;
+    if (col.meta.id && col.meta.id.dis) {
+      var dis = col.meta.id.dis;
+      if (col.meta.siteRef && col.meta.siteRef.dis) {
+        var prefix = col.meta.siteRef.dis + ' ';
+        if (dis.indexOf(prefix) === 0) dis = dis.slice(prefix.length);
+      }
+      return dis.replace(/\s+/g, ' ').trim();
+    }
+    if (col.meta.navName) return col.meta.navName;
+    if (col.meta.dis)     return col.meta.dis;
     return col.name;
   }
 
