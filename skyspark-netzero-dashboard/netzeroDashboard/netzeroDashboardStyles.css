@@ -281,6 +281,27 @@ select.nz-meta-item {
 }
 .nz-equiv-sub { font-size: 9.5px; color: var(--nz-400); margin-top: 3px; }
 
+/* ── Data status badges ───────────────────────────── */
+.nz-status-badge {
+  display: inline-block !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 1px 6px !important;
+  border-radius: 3px !important;
+  margin-left: 8px !important;
+  vertical-align: middle !important;
+}
+.nz-status-badge--demo {
+  background: var(--nz-200) !important;
+  color: var(--nz-500) !important;
+}
+.nz-status-badge--wip {
+  background: var(--nz-amber) !important;
+  color: #fff !important;
+}
+
 /* ── Toggle bar (matches mbcx toggle-bar) ─────────── */
 .nz-toggle-bar {
   display: flex !important;

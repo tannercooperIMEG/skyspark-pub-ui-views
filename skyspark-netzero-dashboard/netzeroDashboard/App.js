@@ -91,19 +91,19 @@ window.netzeroDashboard = window.netzeroDashboard || {};
 
         // Performance Overview (merged KPIs + Equiv) — collapsible, default open
         section(ICONS.kpi, 'var(--nz-blue)', 'Performance Overview',
-          'YTD key metrics \u00b7 environmental equivalents',
+          'YTD key metrics \u00b7 environmental equivalents <span class="nz-status-badge nz-status-badge--demo">Demo</span>',
           overviewBody,
           { collapsible: true, open: true, accentColor: '#4A6FA5' }),
 
         // Monthly Trends (charts + detail tables) — collapsible, default open
         section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
-          'Building consumption &amp; solar generation &amp; net zero',
+          'Building consumption &amp; solar generation &amp; net zero <span class="nz-status-badge nz-status-badge--wip">In Progress</span>',
           co.Charts.render(data),
           { collapsible: true, open: true, accentColor: '#2e3a4e' }),
 
         // Meter breakdown — collapsible, default collapsed
         section(ICONS.meter, 'var(--nz-amber)', 'Meter Breakdown',
-          'Individual meter readings \u00b7 12-month view',
+          'Individual meter readings \u00b7 12-month view <span class="nz-status-badge nz-status-badge--demo">Demo</span>',
           co.MeterBreakdown.render(data),
           { collapsible: true, open: false, accentColor: '#D97706' }),
 
