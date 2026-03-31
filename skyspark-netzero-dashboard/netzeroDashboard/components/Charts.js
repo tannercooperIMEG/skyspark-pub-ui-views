@@ -132,14 +132,17 @@ window.netzeroDashboard.components.Charts = {
 
   initCharts: function (container, data) {
     var C = window.Chart;
-    if (!C) return;
+    if (!C) { console.log('[nzDiag] Chart.js not loaded'); return; }
     var self = this;
     var months = data.charts.months;
     var opts = this._makeOpts();
     var greenColor = '#5C8A3C';
 
+    console.log('[nzDiag] initCharts — months:', months, 'building actual:', data.charts.building.actual, 'building model:', data.charts.building.model);
+
     // Building chart
     var bEl = container.querySelector('#nzBuildingChart');
+    console.log('[nzDiag] building canvas found:', !!bEl);
     if (bEl) {
       new C(bEl, {
         type: 'bar',
