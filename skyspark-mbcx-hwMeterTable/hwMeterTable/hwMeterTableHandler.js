@@ -34,7 +34,8 @@ window.hwMeterTable = window.hwMeterTable || {};
 
   var APP_ID   = 'hwMeterTable-root';
   var CSS_ID   = 'hwMeterTable-styles';
-  var CSS_PATH = '/pub/ui/hwMeterTable/hwMeterTableStyles.css';
+  var CSS_PATH = '/pub/ui/hwMeterTable/hwMeterTableStyles.css?v=' +
+                 (window.hwMeterTable._version || '0');
 
   // ── Module-level state ─────────────────────────────────────────────────
   // Persists across onUpdate calls so the detail view's back button and
@@ -52,9 +53,13 @@ window.hwMeterTable = window.hwMeterTable || {};
 
   // ── Private helpers ────────────────────────────────────────────────────
 
-  /** Inject the stylesheet once, idempotently. */
+  /** Inject the stylesheet, replacing it if the version has changed. */
   function loadStyles() {
-    if (document.getElementById(CSS_ID)) return;
+    var existing = document.getElementById(CSS_ID);
+    if (existing) {
+      if (existing.href.indexOf('v=' + (window.hwMeterTable._version || '0')) !== -1) return;
+      existing.parentNode.removeChild(existing);
+    }
     var link  = document.createElement('link');
     link.id   = CSS_ID;
     link.rel  = 'stylesheet';
