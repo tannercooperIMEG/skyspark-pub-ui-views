@@ -259,27 +259,33 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     tooltip.style.display = 'none';
     area.appendChild(tooltip);
 
-    overlay.addEventListener('mousemove', function (e) {
+    var tooltipPinned = false;
+
+    function nearestIdx(e) {
       var rect = svg.getBoundingClientRect();
       var svgX = ((e.clientX - rect.left) / rect.width) * W;
       var t    = tMin + Math.max(0, Math.min(1, (svgX - ML) / plotW)) * tSpan;
-      var nearIdx = 0, nearDist = Infinity;
+      var best = 0, bestDist = Infinity;
       timestamps.forEach(function (ts, i) {
         if (ts === null) return;
         var d = Math.abs(ts - t);
-        if (d < nearDist) { nearDist = d; nearIdx = i; }
+        if (d < bestDist) { bestDist = d; best = i; }
       });
-      var nx = xs(timestamps[nearIdx]);
+      return best;
+    }
+
+    function showTooltip(e, idx) {
+      var nx = xs(timestamps[idx]);
       crosshair.setAttribute('x1', nx); crosshair.setAttribute('y1', MT);
       crosshair.setAttribute('x2', nx); crosshair.setAttribute('y2', MT + plotH);
       crosshair.style.display = '';
 
-      var tsLabel = new Date(timestamps[nearIdx]).toLocaleString(undefined,
+      var tsLabel = new Date(timestamps[idx]).toLocaleString(undefined,
         { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
       var lines = ['<strong>' + tsLabel + '</strong>'];
       series.forEach(function (s) {
         var dot = '<span style="color:' + s.color + ';font-size:16px;line-height:0.5">&#9679;</span> ';
-        lines.push(dot + s.name + ': ' + fmtNum(s.values[nearIdx], s.unit));
+        lines.push(dot + s.name + ': ' + fmtNum(s.values[idx], s.unit));
       });
       tooltip.innerHTML     = lines.join('<br>');
       tooltip.style.display = 'block';
@@ -290,10 +296,32 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       if (tx + (tooltip.offsetWidth || 180) > cRect.width - 4) tx = tx - (tooltip.offsetWidth || 180) - 28;
       tooltip.style.left = tx + 'px';
       tooltip.style.top  = ty + 'px';
+    }
+
+    // Crosshair follows mouse; tooltip only appears on click
+    overlay.addEventListener('mousemove', function (e) {
+      var idx = nearestIdx(e);
+      var nx  = xs(timestamps[idx]);
+      crosshair.setAttribute('x1', nx); crosshair.setAttribute('y1', MT);
+      crosshair.setAttribute('x2', nx); crosshair.setAttribute('y2', MT + plotH);
+      crosshair.style.display = '';
+      if (tooltipPinned) showTooltip(e, idx); // update pinned tooltip position while moving
     });
+
+    overlay.addEventListener('click', function (e) {
+      var idx = nearestIdx(e);
+      if (tooltipPinned) {
+        tooltipPinned = false;
+        tooltip.style.display = 'none';
+      } else {
+        tooltipPinned = true;
+        showTooltip(e, idx);
+      }
+    });
+
     overlay.addEventListener('mouseleave', function () {
-      crosshair.style.display  = 'none';
-      tooltip.style.display    = 'none';
+      crosshair.style.display = 'none';
+      if (!tooltipPinned) tooltip.style.display = 'none';
     });
     svg.appendChild(overlay);
     area.appendChild(svg);

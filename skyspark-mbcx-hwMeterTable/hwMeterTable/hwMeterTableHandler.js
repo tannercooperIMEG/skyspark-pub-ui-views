@@ -41,10 +41,11 @@ window.hwMeterTable = window.hwMeterTable || {};
   // Persists across onUpdate calls so the detail view's back button and
   // onSiteClick can always use up-to-date session values.
 
-  var _fetchGen     = 0;   // incremented on every new fetch
-  var _attestKey    = '';
-  var _projectName  = '';
-  var _dates        = '';
+  var _fetchGen          = 0;   // incremented on every new fetch
+  var _attestKey         = '';
+  var _projectName       = '';
+  var _dates             = '';
+  var _currentDetailInfo = null; // set while detail view is open; null in table view
 
   // DOM handles — set once when the scaffold is built
   var _titleEl;
@@ -92,21 +93,15 @@ window.hwMeterTable = window.hwMeterTable || {};
     return null;
   }
 
-  /** Switch to the table view (hide detail, show table + title). */
-  function _showTable() {
-    _detailContainer.style.display = 'none';
-    _titleEl.style.display         = '';
-    _tableContainer.style.display  = '';
-  }
-
   /**
    * Switch to the detail view for a clicked site row.
    *
    * @param {Object} info - { siteId, siteName, rowData, visibleCols }
    */
   function _showDetail(info) {
-    _titleEl.style.display        = 'none';
-    _tableContainer.style.display = 'none';
+    _currentDetailInfo             = info;
+    _titleEl.style.display         = 'none';
+    _tableContainer.style.display  = 'none';
     _detailContainer.style.display = '';
 
     components.renderSiteDetail(
@@ -122,6 +117,14 @@ window.hwMeterTable = window.hwMeterTable || {};
       },
       _showTable  // back button callback
     );
+  }
+
+  /** Switch to the table view (hide detail, show table + title). */
+  function _showTable() {
+    _currentDetailInfo              = null;
+    _detailContainer.style.display  = 'none';
+    _titleEl.style.display          = '';
+    _tableContainer.style.display   = '';
   }
 
   /**
@@ -226,9 +229,16 @@ window.hwMeterTable = window.hwMeterTable || {};
       root.appendChild(_detailContainer);
     }
 
-    // Always return to the table view when variables change
-    _showTable();
-    refreshData(_tableContainer, _attestKey, _projectName, targets, _dates);
+    // If the detail view is open, re-render it with updated dates/session values.
+    // Invalidate the table cache so it re-fetches when the user navigates back.
+    // Otherwise fall through to normal table refresh.
+    if (_currentDetailInfo && _detailContainer && _detailContainer.style.display !== 'none') {
+      if (_tableContainer) _tableContainer.removeAttribute('data-fetch-key');
+      _showDetail(_currentDetailInfo);
+    } else {
+      _showTable();
+      refreshData(_tableContainer, _attestKey, _projectName, targets, _dates);
+    }
   };
 
 })(window.hwMeterTable);
