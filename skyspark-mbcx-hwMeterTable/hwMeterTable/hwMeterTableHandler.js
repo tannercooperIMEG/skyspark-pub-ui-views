@@ -157,7 +157,11 @@ window.hwMeterTable = window.hwMeterTable || {};
           tableContainer,
           result.siteGrid,
           result.totalsGrid,
-          { onSiteClick: _showDetail }
+          {
+            onSiteClick:  _showDetail,
+            attestKey:    attestKey,
+            projectName:  projectName
+          }
         );
       })
       .catch(function (err) {

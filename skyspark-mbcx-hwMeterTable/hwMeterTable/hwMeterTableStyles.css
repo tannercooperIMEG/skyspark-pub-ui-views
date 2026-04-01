@@ -231,6 +231,96 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Remarks text cell — left-aligned, wrapping, constrained width */
+#hwMeterTable-root .hw-site-table td.hw-cell-remarks {
+  text-align: left;
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 280px;
+  min-width: 140px;
+  font-size: 12px;
+  color: #3a4a5a;
+  vertical-align: top;
+  padding-top: 8px;
+}
+
+/* Remarks cell while the inline editor is open */
+#hwMeterTable-root .hw-site-table td.hw-cell-remarks-editing {
+  padding: 4px;
+  min-width: 220px;
+}
+
+/* Inline remarks textarea */
+#hwMeterTable-root .hw-remarks-editor {
+  width: 100%;
+  min-height: 60px;
+  font-size: 12px;
+  font-family: inherit;
+  border: 1px solid #01538b;
+  border-radius: 3px;
+  padding: 4px 6px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+/* Save / Cancel button row */
+#hwMeterTable-root .hw-remarks-btns {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  align-items: center;
+}
+#hwMeterTable-root .hw-remarks-save,
+#hwMeterTable-root .hw-remarks-cancel {
+  font-size: 11px;
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 1px solid;
+}
+#hwMeterTable-root .hw-remarks-save {
+  background: #01538b;
+  color: #fff;
+  border-color: #01538b;
+}
+#hwMeterTable-root .hw-remarks-save:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+#hwMeterTable-root .hw-remarks-cancel {
+  background: #fff;
+  color: #56657a;
+  border-color: #aab4c0;
+}
+#hwMeterTable-root .hw-remarks-error {
+  font-size: 11px;
+  color: #c62828;
+  margin-top: 4px;
+}
+
+/* ── Right-click context menu ────────────────────────────── */
+
+.hw-ctx-menu {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #c8d4e0;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  min-width: 160px;
+  padding: 4px 0;
+}
+.hw-ctx-menu-item {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #1a2a3a;
+  cursor: pointer;
+}
+.hw-ctx-menu-item:hover {
+  background: #eef4f9;
+  color: #01538b;
+}
+
 /* Hover — light IMEG blue tint */
 #hwMeterTable-root .hw-site-table tbody tr:hover {
   background-color: #cce0ef;

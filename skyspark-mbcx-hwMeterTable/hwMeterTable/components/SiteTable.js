@@ -237,6 +237,10 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       dis: 'Pred. Max Flow',
       total: true,
       doc: 'Predicted maximum flow derived from estimated max load and design delta-T.'
+    },
+    hwMonitoringRemarks: {
+      dis:  'Remarks',
+      text: true   // plain-text column: left-aligned, wrapping, editable via right-click
     }
   };
 
@@ -252,10 +256,133 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       doc:      real.doc      || ph.doc      || null,
       total:    real.total    || (ph.total    ? marker() : undefined),
       emphasis: real.emphasis || (ph.emphasis ? marker() : undefined),
-      hidden:   real.hidden
+      hidden:   real.hidden,
+      text:     real.text     || ph.text     || false
     };
   }
   // ── END PLACEHOLDER CONFIG ───────────────────────────────────────────────
+
+  // ── Context-menu singleton ───────────────────────────────────────────────
+
+  var _ctxMenu     = null;
+  var _ctxDismiss  = null;
+
+  function ensureCtxMenu() {
+    if (_ctxMenu) return _ctxMenu;
+    _ctxMenu = document.createElement('div');
+    _ctxMenu.className = 'hw-ctx-menu';
+    _ctxMenu.style.display = 'none';
+    document.body.appendChild(_ctxMenu);
+    return _ctxMenu;
+  }
+
+  function hideCtxMenu() {
+    if (_ctxMenu) _ctxMenu.style.display = 'none';
+    if (_ctxDismiss) {
+      document.removeEventListener('click',       _ctxDismiss);
+      document.removeEventListener('contextmenu', _ctxDismiss);
+      document.removeEventListener('keydown',     _ctxDismiss);
+      _ctxDismiss = null;
+    }
+  }
+
+  function showCtxMenu(items, clientX, clientY) {
+    var menu = ensureCtxMenu();
+    menu.innerHTML = '';
+    items.forEach(function (item) {
+      var li = document.createElement('div');
+      li.className   = 'hw-ctx-menu-item';
+      li.textContent = item.label;
+      li.addEventListener('click', function () { hideCtxMenu(); item.action(); });
+      menu.appendChild(li);
+    });
+    menu.style.left    = clientX + 'px';
+    menu.style.top     = clientY + 'px';
+    menu.style.display = 'block';
+    // Reposition if off-screen
+    setTimeout(function () {
+      var r = menu.getBoundingClientRect();
+      if (r.right  > window.innerWidth)  menu.style.left = (clientX - r.width)  + 'px';
+      if (r.bottom > window.innerHeight) menu.style.top  = (clientY - r.height) + 'px';
+    }, 0);
+    _ctxDismiss = function (e) {
+      if (!menu.contains(e.target)) hideCtxMenu();
+    };
+    setTimeout(function () {
+      document.addEventListener('click',       _ctxDismiss);
+      document.addEventListener('contextmenu', _ctxDismiss);
+      document.addEventListener('keydown',     function (e) { if (e.key === 'Escape') hideCtxMenu(); });
+    }, 0);
+  }
+
+  // ── Inline remarks editor ────────────────────────────────────────────────
+
+  function escapeAxon(s) {
+    return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r/g, '').replace(/\n/g, '\\n');
+  }
+
+  function editRemarks(td, siteId, attestKey, projectName) {
+    var original = td.textContent === '\u2014' ? '' : td.textContent;
+    td.innerHTML = '';
+    td.classList.add('hw-cell-remarks-editing');
+
+    var ta = document.createElement('textarea');
+    ta.className = 'hw-remarks-editor';
+    ta.value     = original;
+    td.appendChild(ta);
+
+    var btns = document.createElement('div');
+    btns.className = 'hw-remarks-btns';
+
+    var saveBtn = document.createElement('button');
+    saveBtn.className   = 'hw-remarks-save';
+    saveBtn.textContent = 'Save';
+
+    var cancelBtn = document.createElement('button');
+    cancelBtn.className   = 'hw-remarks-cancel';
+    cancelBtn.textContent = 'Cancel';
+
+    btns.appendChild(saveBtn);
+    btns.appendChild(cancelBtn);
+    td.appendChild(btns);
+    ta.focus();
+
+    function restore(text) {
+      td.classList.remove('hw-cell-remarks-editing');
+      td.innerHTML    = '';
+      td.textContent  = text || '\u2014';
+    }
+
+    cancelBtn.addEventListener('click', function (e) { e.stopPropagation(); restore(original); });
+
+    saveBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var newVal  = ta.value.trim();
+      var axon    = 'commit(diff(readById(' + siteId + '), {hwMonitoringRemarks: "' + escapeAxon(newVal) + '"}))';
+      saveBtn.disabled   = true;
+      saveBtn.textContent = 'Saving\u2026';
+      utils.evalAxon(axon, attestKey, projectName)
+        .then(function ()  { restore(newVal); })
+        .catch(function (err) {
+          console.error('[hwMeterTable] Remarks save failed:', err);
+          saveBtn.disabled    = false;
+          saveBtn.textContent = 'Save';
+          var errEl = document.createElement('div');
+          errEl.className   = 'hw-remarks-error';
+          errEl.textContent = 'Save failed: ' + (err.message || String(err));
+          btns.appendChild(errEl);
+        });
+    });
+
+    ta.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { e.stopPropagation(); restore(original); }
+    });
+
+    // Prevent row left-click (detail nav) while editor is open
+    td.addEventListener('click', function (e) { e.stopPropagation(); });
+  }
+
+  // ── End remarks editor ───────────────────────────────────────────────────
 
   /**
    * Render the demand data grid into the given container element.
@@ -264,8 +391,9 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
    * @param {Object}      gridData    - Per-site Haystack grid returned by loadDemandData
    * @param {Object}      totalsGrid  - Campus totals grid (mode 2) for KPI cards
    * @param {Object}      [opts]      - Optional config
-   *   @param {Function}  [opts.onSiteClick] - Called when a row is clicked with
-   *                                           { siteId, siteName, rowData, visibleCols }
+   *   @param {Function}  [opts.onSiteClick]  - Called when a row is clicked
+   *   @param {string}    [opts.attestKey]    - Session attest key (for remarks write-back)
+   *   @param {string}    [opts.projectName]  - SkySpark project name (for remarks write-back)
    */
   components.renderSiteTable = function (container, gridData, totalsGrid, opts) {
     container.innerHTML = '';
@@ -366,8 +494,10 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
           td.textContent = cellText(rawVal, isIdCol);
 
           // Build CSS class list
+          var isText = col.meta && col.meta.text;
           var classes = [];
-          if (!isIdCol)             classes.push('hw-cell-number');
+          if (!isIdCol && !isText) classes.push('hw-cell-number');
+          if (isText)               classes.push('hw-cell-remarks');
           if (isEmphasis(col.meta)) classes.push('hw-col-emphasis-cell');
           if (classes.length) td.className = classes.join(' ');
 
@@ -403,6 +533,36 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
             });
           })(row);
         }
+
+        // Wire right-click to edit remarks (always, regardless of onSiteClick)
+        (function (capturedRow, capturedTr) {
+          capturedTr.addEventListener('contextmenu', function (e) {
+            // Find the remarks column index
+            var remarksIdx = -1;
+            for (var ri = 0; ri < visibleCols.length; ri++) {
+              if (visibleCols[ri].name === 'hwMonitoringRemarks') { remarksIdx = ri; break; }
+            }
+            if (remarksIdx < 0) return; // no remarks column — let browser menu through
+            e.preventDefault();
+
+            var idVal  = capturedRow['id'];
+            var siteId = null;
+            if (idVal && typeof idVal === 'object' && idVal._kind === 'ref') {
+              siteId = '@' + idVal.val;
+            }
+            if (!siteId) return;
+
+            var cells  = capturedTr.querySelectorAll('td');
+            var td     = cells[remarksIdx];
+            var attKey = opts && opts.attestKey   ? opts.attestKey   : '';
+            var proj   = opts && opts.projectName ? opts.projectName : '';
+
+            showCtxMenu([{
+              label:  'Edit Remarks',
+              action: function () { editRemarks(td, siteId, attKey, proj); }
+            }], e.clientX, e.clientY);
+          });
+        })(row, tr);
 
         tbody.appendChild(tr);
       });
