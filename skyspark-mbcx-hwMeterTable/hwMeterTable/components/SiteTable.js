@@ -537,20 +537,27 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
         // Wire right-click to edit remarks (always, regardless of onSiteClick)
         (function (capturedRow, capturedTr) {
           capturedTr.addEventListener('contextmenu', function (e) {
+            e.preventDefault(); // always suppress browser menu on table rows
+
             // Find the remarks column index
             var remarksIdx = -1;
             for (var ri = 0; ri < visibleCols.length; ri++) {
               if (visibleCols[ri].name === 'hwMonitoringRemarks') { remarksIdx = ri; break; }
             }
-            if (remarksIdx < 0) return; // no remarks column — let browser menu through
-            e.preventDefault();
 
             var idVal  = capturedRow['id'];
             var siteId = null;
             if (idVal && typeof idVal === 'object' && idVal._kind === 'ref') {
               siteId = '@' + idVal.val;
             }
-            if (!siteId) return;
+
+            if (remarksIdx < 0 || !siteId) {
+              showCtxMenu([{
+                label:  'Remarks column not configured',
+                action: function () {}
+              }], e.clientX, e.clientY);
+              return;
+            }
 
             var cells  = capturedTr.querySelectorAll('td');
             var td     = cells[remarksIdx];
