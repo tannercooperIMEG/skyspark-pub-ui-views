@@ -428,15 +428,28 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       groups[key].push(s);
     });
 
+    // ── Pair helper: heuristic first, positional fallback ────────────────
+    function pairGroup(group) {
+      var rawCandidates     = group.filter(function (s) { return  s.isRaw; });
+      var treatedCandidates = group.filter(function (s) { return !s.isRaw; });
+      if (rawCandidates.length > 0 && treatedCandidates.length > 0) {
+        return { rawS: rawCandidates[0], treatedS: treatedCandidates[0] };
+      }
+      if (group.length >= 2) {
+        return { rawS: group[0], treatedS: group[1] };
+      }
+      return null;
+    }
+
     // ── Removed-sample summary cards ─────────────────────────────────────
     var summaryStrip = document.createElement('div');
     summaryStrip.className = 'hw-kpi-strip';
 
     groupOrder.forEach(function (unitKey) {
-      var group    = groups[unitKey];
-      var rawS     = group.find(function (s) { return  s.isRaw; });
-      var treatedS = group.find(function (s) { return !s.isRaw; });
-      if (!rawS || !treatedS) return;
+      var group = groups[unitKey];
+      var pair  = pairGroup(group);
+      if (!pair) return;
+      var rawS = pair.rawS, treatedS = pair.treatedS;
 
       var rawCount     = rawS.values.filter(    function (v) { return v !== null; }).length;
       var treatedCount = treatedS.values.filter(function (v) { return v !== null; }).length;
@@ -471,24 +484,15 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     pane.appendChild(chartGrid);
 
     groupOrder.forEach(function (unitKey) {
-      var group    = groups[unitKey];
-      var rawS     = group.find(function (s) { return  s.isRaw; });
-      var treatedS = group.find(function (s) { return !s.isRaw; });
-
-      // Positional fallback: if heuristic didn't find both sides, treat
-      // first column in the group as Original, second as Treated.
-      if (!rawS && !treatedS && group.length >= 2) {
-        rawS     = group[0];
-        treatedS = group[1];
-      }
-
+      var group  = groups[unitKey];
+      var pair   = pairGroup(group);
       var prefix = siteName ? siteName + ' ' : '';
       var pairedSeries;
-      if (rawS && treatedS) {
+      if (pair) {
         // Original drawn first (behind, light); Treated drawn second (on top, dark)
         pairedSeries = [
-          { name: prefix + 'Original Data', unit: rawS.unit,     values: rawS.values,     color: RAW_COLOR     },
-          { name: prefix + 'Treated Data',  unit: treatedS.unit, values: treatedS.values, color: TREATED_COLOR }
+          { name: prefix + 'Original Data', unit: pair.rawS.unit,     values: pair.rawS.values,     color: RAW_COLOR     },
+          { name: prefix + 'Treated Data',  unit: pair.treatedS.unit, values: pair.treatedS.values, color: TREATED_COLOR }
         ];
       } else {
         pairedSeries = group.map(function (s, i) {
