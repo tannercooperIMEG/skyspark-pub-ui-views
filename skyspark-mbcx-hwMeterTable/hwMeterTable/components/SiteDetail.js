@@ -17,8 +17,8 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
   // ── Color palette ─────────────────────────────────────────────────────────
   var SERIES_COLORS = ['#01538b', '#e07000', '#2e7d32', '#6a1b9a', '#c62828', '#00838f'];
-  var RAW_COLOR     = '#aab4c0';  // untreated / original data
-  var TREATED_COLOR = '#01538b'; // treated / cleaned data
+  var RAW_COLOR     = '#c8d8e8';  // original / unfiltered data — light so treated stands out
+  var TREATED_COLOR = '#01538b'; // treated / cleaned data — dark, drawn on top
 
   // ── Shared helpers ────────────────────────────────────────────────────────
 
@@ -384,95 +384,9 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     });
   }
 
-  // ── Building Metrics tab ──────────────────────────────────────────────────
-  // One comparison card per row: metric name, measured value, calculated value,
-  // and measured-to-calculated ratio.
-
-  function renderBuildingMetrics(pane, grid) {
-    var cols = grid.cols || [];
-    var rows = grid.rows || [];
-
-    if (!rows.length) {
-      pane.innerHTML = '<div class="hw-chart-empty">No metrics data returned.</div>';
-      return;
-    }
-
-    // Heuristic column role detection
-    function matchCol(keywords) {
-      return cols.find(function (c) {
-        return keywords.some(function (k) { return c.name.toLowerCase().indexOf(k) !== -1; });
-      });
-    }
-    var nameCol     = matchCol(['name', 'metric', 'label', 'dis']);
-    var measuredCol = matchCol(['measured', 'actual', 'meas']);
-    var calcCol     = matchCol(['calc', 'estimated', 'est', 'predicted', 'pred']);
-    var unitCol     = matchCol(['unit']);
-
-    var strip = document.createElement('div');
-    strip.className = 'hw-metric-cards';
-    pane.appendChild(strip);
-
-    rows.forEach(function (row) {
-      var label    = nameCol     ? String(row[nameCol.name]     || '') : '';
-      var measured = measuredCol ? extractNum(row[measuredCol.name]) : null;
-      var calc     = calcCol     ? extractNum(row[calcCol.name])     : null;
-      var unit     = unitCol     ? String(row[unitCol.name]     || '') : '';
-
-      var card = document.createElement('div');
-      card.className = 'hw-metric-card';
-
-      if (label) {
-        var lbl = document.createElement('div');
-        lbl.className   = 'hw-metric-card-label';
-        lbl.textContent = label;
-        card.appendChild(lbl);
-      }
-
-      var valRow = document.createElement('div');
-      valRow.className = 'hw-metric-card-vals';
-
-      function makeValCell(num, sublabel, extraClass) {
-        var el  = document.createElement('div');
-        el.className = 'hw-metric-card-val' + (extraClass ? ' ' + extraClass : '');
-        var nEl = document.createElement('div');
-        nEl.className   = 'hw-metric-val-number';
-        nEl.textContent = fmtNum(num, unit);
-        var sEl = document.createElement('div');
-        sEl.className   = 'hw-metric-val-sublabel';
-        sEl.textContent = sublabel;
-        el.appendChild(nEl);
-        el.appendChild(sEl);
-        return el;
-      }
-
-      if (measured !== null) valRow.appendChild(makeValCell(measured, 'Measured',   'hw-metric-measured'));
-      if (calc     !== null) valRow.appendChild(makeValCell(calc,     'Calculated', 'hw-metric-calculated'));
-
-      if (measured !== null && calc !== null && calc !== 0) {
-        valRow.appendChild(makeValCell((measured / calc) * 100, 'Meas.\u00a0/\u00a0Calc.', 'hw-metric-ratio'));
-      }
-
-      // Fallback: if heuristics found nothing useful, dump all columns
-      if (valRow.children.length === 0) {
-        cols.forEach(function (col) {
-          var v = row[col.name];
-          if (v === null || v === undefined) return;
-          var n   = extractNum(v);
-          var txt = n !== null ? fmtNum(n, extractUnit(v)) : String(v);
-          var dis = (col.meta && col.meta.dis) ? col.meta.dis : col.name;
-          valRow.appendChild(makeValCell(null, dis, ''));
-          valRow.lastChild.querySelector('.hw-metric-val-number').textContent = txt;
-        });
-      }
-
-      card.appendChild(valRow);
-      strip.appendChild(card);
-    });
-  }
-
   // ── Data Management tab ───────────────────────────────────────────────────
-  // Groups columns by unit; pairs raw vs treated series per group.
-  // Shows removed-sample count cards above overlay charts.
+  // Groups columns by unit; pairs original vs treated series per group.
+  // Shows removed-sample count cards above full-width overlay charts.
 
   function renderDataManagement(pane, grid) {
     var cols = grid.cols || [];
@@ -529,7 +443,7 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       var removed      = Math.max(0, rawCount - treatedCount);
 
       var card = document.createElement('div');
-      card.className = 'hw-kpi-card';
+      card.className = 'hw-kpi-card hw-kpi-card-removed';
 
       var valEl = document.createElement('div');
       valEl.className   = 'hw-kpi-value';
@@ -541,7 +455,7 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
       var subEl = document.createElement('div');
       subEl.className   = 'hw-kpi-sublabel';
-      subEl.textContent = rawCount.toLocaleString() + ' raw \u2192 ' + treatedCount.toLocaleString() + ' treated';
+      subEl.textContent = rawCount.toLocaleString() + ' original \u2192 ' + treatedCount.toLocaleString() + ' treated';
 
       card.appendChild(valEl);
       card.appendChild(lblEl);
@@ -551,9 +465,9 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
     if (summaryStrip.children.length > 0) pane.appendChild(summaryStrip);
 
-    // ── Overlay charts ────────────────────────────────────────────────────
+    // ── Overlay charts — full-width one per unit ──────────────────────────
     var chartGrid = document.createElement('div');
-    chartGrid.className = 'hw-chart-grid-2col';
+    chartGrid.className = 'hw-chart-grid-1col';
     pane.appendChild(chartGrid);
 
     groupOrder.forEach(function (unitKey) {
@@ -563,9 +477,10 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
       var pairedSeries;
       if (rawS && treatedS) {
+        // Original drawn first (behind, light); Treated drawn second (on top, dark)
         pairedSeries = [
-          { name: treatedS.name, unit: treatedS.unit, values: treatedS.values, color: TREATED_COLOR },
-          { name: rawS.name,     unit: rawS.unit,     values: rawS.values,     color: RAW_COLOR }
+          { name: 'Original', unit: rawS.unit,     values: rawS.values,     color: RAW_COLOR     },
+          { name: 'Treated',  unit: treatedS.unit, values: treatedS.values, color: TREATED_COLOR }
         ];
       } else {
         pairedSeries = group.map(function (s, i) {
@@ -580,9 +495,8 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
   // ── Tab definitions ───────────────────────────────────────────────────────
 
   var TABS = [
-    { key: 'Trends',           label: 'Trends',           render: renderTrends },
-    { key: 'Building Metrics', label: 'Building Metrics', render: renderBuildingMetrics },
-    { key: 'Data Management',  label: 'Data Management',  render: renderDataManagement }
+    { key: 'Trends',          label: 'Trends',          render: renderTrends },
+    { key: 'Data Management', label: 'Data Management', render: renderDataManagement }
   ];
 
   // ── Public API ─────────────────────────────────────────────────────────────
