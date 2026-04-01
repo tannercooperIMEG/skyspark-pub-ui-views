@@ -309,8 +309,14 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
     var rows = grid.rows || [];
     var valCols = cols.filter(function (c) { return c.name !== 'ts'; });
 
-    if (!valCols.length || !rows.length) {
-      pane.innerHTML = '<div class="hw-chart-empty">No trend data returned.</div>';
+    if (!valCols.length) {
+      pane.innerHTML = '<div class="hw-chart-empty">No meter points found for this site. ' +
+        'Verify <code>view_pubUI_helper_DetailPage</code> includes this site\'s equipment.</div>';
+      return;
+    }
+    if (!rows.length) {
+      pane.innerHTML = '<div class="hw-chart-empty">No data in the selected date range. ' +
+        'Try a past period such as <em>lastMonth</em> or <em>lastQuarter</em>.</div>';
       return;
     }
 
