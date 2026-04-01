@@ -388,7 +388,7 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
   // Groups columns by unit; pairs original vs treated series per group.
   // Shows removed-sample count cards above full-width overlay charts.
 
-  function renderDataManagement(pane, grid) {
+  function renderDataManagement(pane, grid, siteName) {
     var cols = grid.cols || [];
     var rows = grid.rows || [];
     var valCols = cols.filter(function (c) { return c.name !== 'ts'; });
@@ -475,12 +475,20 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       var rawS     = group.find(function (s) { return  s.isRaw; });
       var treatedS = group.find(function (s) { return !s.isRaw; });
 
+      // Positional fallback: if heuristic didn't find both sides, treat
+      // first column in the group as Original, second as Treated.
+      if (!rawS && !treatedS && group.length >= 2) {
+        rawS     = group[0];
+        treatedS = group[1];
+      }
+
+      var prefix = siteName ? siteName + ' ' : '';
       var pairedSeries;
       if (rawS && treatedS) {
         // Original drawn first (behind, light); Treated drawn second (on top, dark)
         pairedSeries = [
-          { name: 'Original', unit: rawS.unit,     values: rawS.values,     color: RAW_COLOR     },
-          { name: 'Treated',  unit: treatedS.unit, values: treatedS.values, color: TREATED_COLOR }
+          { name: prefix + 'Original Data', unit: rawS.unit,     values: rawS.values,     color: RAW_COLOR     },
+          { name: prefix + 'Treated Data',  unit: treatedS.unit, values: treatedS.values, color: TREATED_COLOR }
         ];
       } else {
         pairedSeries = group.map(function (s, i) {
@@ -494,10 +502,16 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
   // ── Tab definitions ───────────────────────────────────────────────────────
 
-  var TABS = [
-    { key: 'Trends',          label: 'Trends',          render: renderTrends },
-    { key: 'Data Management', label: 'Data Management', render: renderDataManagement }
-  ];
+  // TABS is built per-render so renderDataManagement gets opts.siteName via closure
+  function buildTabs(siteName) {
+    return [
+      { key: 'Trends',          label: 'Trends',          render: renderTrends },
+      { key: 'Data Management', label: 'Data Management', render: function (pane, grid) {
+          renderDataManagement(pane, grid, siteName);
+        }
+      }
+    ];
+  }
 
   // ── Public API ─────────────────────────────────────────────────────────────
 
@@ -585,7 +599,7 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
 
       tabPane.innerHTML = '';
 
-      var tab = TABS.find(function (t) { return t.key === tabKey; });
+      var tab = TABS.find(function (t) { return t.key === tabKey; }); // TABS is in enclosing scope
       if (!tab) return;
 
       // Serve from cache
@@ -638,6 +652,8 @@ window.hwMeterTable.components = window.hwMeterTable.components || {};
       el.textContent = 'Error loading ' + label + ': ' + err.message;
       pane.appendChild(el);
     }
+
+    var TABS = buildTabs(opts.siteName);
 
     TABS.forEach(function (tab) {
       var btn = document.createElement('button');

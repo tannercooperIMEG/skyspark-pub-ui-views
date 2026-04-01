@@ -12,7 +12,7 @@ var hwMeterTableHandler = {};
 
 (function () {
   var BASE_URL = '/pub/ui/hwMeterTable/';
-  var VERSION  = '32';  // bump this when deploying updated module files
+  var VERSION  = '33';  // bump this when deploying updated module files
 
   // Expose version so modules (handler) can append it to CSS/asset URLs
   window.hwMeterTable = window.hwMeterTable || {};
