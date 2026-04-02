@@ -340,7 +340,7 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
 
       // Override meter breakdown if we have live data
       if (meterData && meterData.rows.length > 0) {
-        console.log('[nzDiag] meter override — first row:', meterData.rows[0].name, 'vals:', meterData.rows[0].values.slice(0, 5));
+        console.log('[nzDiag] meter override — first row:', meterData.rows[0].name, 'vals:', JSON.stringify(meterData.rows[0].values));
         data.meterBreakdown = {
           months: meterData.months,
           rows: meterData.rows
