@@ -75,7 +75,7 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
       if (col.name === 'dis') continue;
       valueCols.push(col.name);
       var monthDis = (col.meta && col.meta.dis) ? col.meta.dis : col.name;
-      months.push(monthDis.split('-')[0]);
+      months.push(_shortMonth(monthDis));
     }
     if (months.length === 0) return null;
 
