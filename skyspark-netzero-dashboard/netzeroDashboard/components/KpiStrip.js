@@ -36,7 +36,6 @@ window.netzeroDashboard.components.KpiStrip = {
       '    <div class="nz-kpi-label">Building Net Zero</div>',
       '    <div class="nz-kpi-num">' + fmt(k.netPerformance) + '</div>',
       '    <div class="nz-kpi-unit">kWh</div>',
-      '    <div class="nz-kpi-note">' + (k.surplusNote || '') + '</div>',
       '  </div>',
 
       // 4 — Coverage ratio

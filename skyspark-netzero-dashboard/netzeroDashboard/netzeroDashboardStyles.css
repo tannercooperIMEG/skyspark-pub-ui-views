@@ -114,38 +114,18 @@ select.nz-meta-item {
   background-position: right 9px center;
 }
 
-/* ── Section cards (exact mbcx equip-section pattern) ── */
-.nz-section {
-  background: var(--nz-white) !important;
-  border: 1px solid var(--nz-200) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
-  margin-bottom: 40px !important;
-  overflow: hidden !important;
-}
-
-/* Collapsible sections get a colored left accent border */
-.nz-section--collapsible {
-  border-left: 4px solid var(--nz-300) !important;
-}
-
-.nz-section-hdr {
+/* ── Section headings (inline label + icon) ────────── */
+.nz-section-heading {
   display: flex !important;
   align-items: center !important;
-  justify-content: space-between !important;
-  padding: 22px 28px !important;
-  background: var(--nz-50) !important;
+  gap: 10px !important;
+  margin: 32px 0 16px !important;
+  padding-bottom: 10px !important;
   border-bottom: 1px solid var(--nz-200) !important;
-  gap: 12px !important;
-  margin-bottom: 0 !important;
 }
-.nz-section-hdr-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+.nz-section-heading:first-of-type { margin-top: 0 !important; }
 .nz-section-icon {
-  width: 32px; height: 32px; border-radius: 6px;
+  width: 28px; height: 28px; border-radius: 6px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .nz-section-title {
@@ -154,60 +134,12 @@ select.nz-meta-item {
   color: var(--nz-700);
   letter-spacing: -0.01em;
 }
-.nz-section-meta {
-  font-size: 12px;
-  color: var(--nz-400);
-  margin-top: 1px;
-}
 
-/* Section body — matches mbcx equip-body padding */
-.nz-section-body { padding: 20px !important; }
-
-/* ── Internal divider (for merged cards) ──────────── */
+/* ── Internal divider ─────────────────────────────── */
 .nz-section-divider {
   border: none;
   border-top: 1px solid var(--nz-200);
   margin: 20px 0;
-}
-
-/* ── Collapsible sections (exact mbcx pattern) ─────── */
-.nz-section--collapsible .nz-section-hdr {
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  transition: background 0.12s;
-  border-bottom-color: transparent;
-}
-.nz-section--collapsible .nz-section-hdr:hover {
-  background: var(--nz-100);
-}
-.nz-section--open .nz-section-hdr {
-  border-bottom-color: var(--nz-200);
-}
-.nz-section--collapsible .nz-section-body {
-  display: none;
-}
-.nz-section--collapsible.nz-section--open .nz-section-body {
-  display: block;
-}
-
-/* Collapse button (visible rounded container for chevron) */
-.nz-collapse-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  color: var(--nz-400);
-  flex-shrink: 0;
-}
-.nz-chevron {
-  width: 16px; height: 16px;
-  transition: transform 0.2s ease;
-}
-.nz-section--open .nz-chevron {
-  transform: rotate(180deg);
 }
 
 /* ── KPI strip ─────────────────────────────────────── */

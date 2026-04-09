@@ -1,56 +1,13 @@
-// App.js — assembles all sections in the mbcx equip-section card pattern
+// App.js — assembles all sections into a single continuous page
 window.netzeroDashboard = window.netzeroDashboard || {};
 
 (function (NS) {
 
-  // SVG icons for section headers
+  // SVG icons for section headings
   var ICONS = {
     kpi:   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
-    chart: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="2" width="4" height="19"/></svg>',
-    table: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
-    meter: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>'
+    chart: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="2" width="4" height="19"/></svg>'
   };
-
-  var CHEVRON_SVG = '<svg class="nz-chevron" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/></svg>';
-
-  /**
-   * Build a section card matching mbcx equip-section pattern.
-   * opts.collapsible  — adds collapsible behavior
-   * opts.open         — starts expanded (only when collapsible)
-   * opts.accentColor  — left border color for collapsible sections
-   */
-  function section(icon, iconBg, title, meta, bodyHtml, opts) {
-    var cls = 'nz-section';
-    var hdrAttr = '';
-    var collapseBtn = '';
-    var accentStyle = '';
-
-    if (opts && opts.collapsible) {
-      cls += ' nz-section--collapsible';
-      if (opts.open) cls += ' nz-section--open';
-      if (opts.accentColor) accentStyle = ' style="border-left-color:' + opts.accentColor + ';"';
-      hdrAttr = ' onclick="this.closest(\'.nz-section\').classList.toggle(\'nz-section--open\');"';
-      collapseBtn = '<div class="nz-collapse-btn" title="Expand / Collapse">' + CHEVRON_SVG + '</div>';
-    }
-
-    return [
-      '<div class="' + cls + '"' + accentStyle + '>',
-      '  <div class="nz-section-hdr"' + hdrAttr + '>',
-      '    <div class="nz-section-hdr-left">',
-      '      <div class="nz-section-icon" style="background:' + iconBg + '">' + icon + '</div>',
-      '      <div>',
-      '        <div class="nz-section-title">' + title + '</div>',
-      meta ? '        <div class="nz-section-meta">' + meta + '</div>' : '',
-      '      </div>',
-      '    </div>',
-      collapseBtn,
-      '  </div>',
-      '  <div class="nz-section-body">',
-      bodyHtml,
-      '  </div>',
-      '</div>'
-    ].join('\n');
-  }
 
   NS.App = {
     init: function (container, data, ctx) {
@@ -60,16 +17,6 @@ window.netzeroDashboard = window.netzeroDashboard || {};
       var dateStr = '';
       if (ctx && ctx.datesStart && ctx.datesEnd) dateStr = ctx.datesStart + '\u2009\u2013\u2009' + ctx.datesEnd;
       else if (ctx && ctx.datesStart) dateStr = ctx.datesStart;
-
-      // Merged Performance Overview body: KPIs + divider + Equiv
-      var overviewBody = [
-        co.KpiStrip.render(data),
-        '<hr class="nz-section-divider">',
-        '<div style="margin-top:4px">',
-        '  <div class="nz-detail-label">Environmental Equivalency</div>',
-        co.EquivStrip.render(data),
-        '</div>'
-      ].join('\n');
 
       container.innerHTML = [
         // Title bar
@@ -89,15 +36,27 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         '  </div>',
         '</div>',
 
-        // Performance Overview (merged KPIs + Equiv)
-        section(ICONS.kpi, 'var(--nz-blue)', 'Performance Overview',
-          '',
-          overviewBody),
+        // ── Performance Overview ──
+        '<div class="nz-section-heading">',
+        '  <div class="nz-section-icon" style="background:var(--nz-blue)">' + ICONS.kpi + '</div>',
+        '  <div class="nz-section-title">Performance Overview</div>',
+        '</div>',
 
-        // Monthly Trends (charts + detail tables)
-        section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
-          '',
-          co.Charts.render(data)),
+        co.KpiStrip.render(data),
+
+        '<hr class="nz-section-divider">',
+        '<div style="margin-top:4px">',
+        '  <div class="nz-detail-label">Environmental Equivalency</div>',
+        co.EquivStrip.render(data),
+        '</div>',
+
+        // ── Monthly Trends ──
+        '<div class="nz-section-heading">',
+        '  <div class="nz-section-icon" style="background:var(--nz-bar-ink)">' + ICONS.chart + '</div>',
+        '  <div class="nz-section-title">Monthly Trends</div>',
+        '</div>',
+
+        co.Charts.render(data),
 
         // Footer
         co.Footer.render(),
