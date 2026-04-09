@@ -89,17 +89,15 @@ window.netzeroDashboard = window.netzeroDashboard || {};
         '  </div>',
         '</div>',
 
-        // Performance Overview (merged KPIs + Equiv) — collapsible, default open
+        // Performance Overview (merged KPIs + Equiv)
         section(ICONS.kpi, 'var(--nz-blue)', 'Performance Overview',
-          'YTD key metrics \u00b7 environmental equivalents <span class="nz-status-badge nz-status-badge--wip">In Progress</span>',
-          overviewBody,
-          { collapsible: true, open: true, accentColor: '#4A6FA5' }),
+          '',
+          overviewBody),
 
-        // Monthly Trends (charts + detail tables) — collapsible, default open
+        // Monthly Trends (charts + detail tables)
         section(ICONS.chart, 'var(--nz-bar-ink)', 'Monthly Trends',
           '',
-          co.Charts.render(data),
-          { collapsible: true, open: true, accentColor: '#2e3a4e' }),
+          co.Charts.render(data)),
 
         // Footer
         co.Footer.render(),
@@ -108,7 +106,6 @@ window.netzeroDashboard = window.netzeroDashboard || {};
       ].join('\n');
 
       // Initialize Chart.js charts after DOM
-      co.KpiStrip.initDonut(container, data);
       co.Charts.initCharts(container, data);
     }
   };
