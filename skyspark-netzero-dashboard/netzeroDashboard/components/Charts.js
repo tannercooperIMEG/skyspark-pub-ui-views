@@ -18,12 +18,13 @@ window.netzeroDashboard.components.Charts = {
   render: function (data) {
     var d = data.detail;
     var DT = window.netzeroDashboard.components.DetailTables;
+    var MB = window.netzeroDashboard.components.MeterBreakdown;
     var live = data._live || {};
 
     // Building content
     var buildingContent;
     if (live.building) {
-      var buildingTable = DT._table('Building consumption', d.months, [
+      var buildingTable = DT._table('Building consumption (kWh)', d.months, [
         DT._dataRow('nz-dot-a', 'Actual', d.buildingConsumption.actual, DT._fmtAbs),
         DT._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, DT._fmtAbs),
         DT._diffRow('Diff', d.buildingConsumption.diff)
@@ -36,7 +37,8 @@ window.netzeroDashboard.components.Charts = {
         '  </div>',
         '  <div class="nz-chart-wrap"><canvas id="nzBuildingChart"></canvas></div>',
         '</div>',
-        '<div class="nz-trend-detail">' + buildingTable + '</div>'
+        '<div class="nz-trend-detail">' + buildingTable + '</div>',
+        MB.render(data)
       ].join('\n');
     } else {
       buildingContent = this._noData('Building');
@@ -114,7 +116,7 @@ window.netzeroDashboard.components.Charts = {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { right: 0 } },
+      layout: { padding: { left: 0, right: 0, top: 0, bottom: 0 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -140,11 +142,11 @@ window.netzeroDashboard.components.Charts = {
           ticks: {
             font: { size: 10 }, color: '#9CA3AF',
             callback: function (v) { return (v / 1000).toFixed(0) + 'k'; },
-            maxTicksLimit: 5
+            maxTicksLimit: 5, mirror: true, padding: 4
           },
           grid: { color: '#F3F4F6' },
           border: { display: false },
-          afterFit: function (axis) { axis.width = 60; }
+          afterFit: function (axis) { axis.width = 0; }
         }
       }
     };
