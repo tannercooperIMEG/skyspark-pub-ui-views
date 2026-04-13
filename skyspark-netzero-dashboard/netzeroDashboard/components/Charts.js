@@ -24,16 +24,20 @@ window.netzeroDashboard.components.Charts = {
     // Building content
     var buildingContent;
     if (live.building) {
-      var buildingTable = DT._table('Building consumption (kWh)', d.months, [
+      var bldgRows = [
         DT._dataRow('nz-dot-a', 'Actual', d.buildingConsumption.actual, DT._fmtAbs),
-        DT._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, DT._fmtAbs),
-        DT._diffRow('Diff', d.buildingConsumption.diff)
-      ]);
+        DT._dataRow('nz-dot-m', 'Model',  d.buildingConsumption.model, DT._fmtAbs)
+      ];
+      if (d.buildingConsumption.reference) {
+        bldgRows.push(DT._dataRow('nz-dot-r', 'Reference', d.buildingConsumption.reference, DT._fmtAbs));
+      }
+      bldgRows.push(DT._diffRow('Diff', d.buildingConsumption.diff));
+      var buildingTable = DT._table('Building consumption (kWh)', d.months, bldgRows);
       buildingContent = [
         '<div class="nz-chart-card">',
         '  <div class="nz-chart-header">',
         '    <div class="nz-chart-name">Building Consumption</div>',
-        this._legend(),
+        this._legend(!!d.buildingConsumption.reference),
         '  </div>',
         '  <div class="nz-chart-wrap"><canvas id="nzBuildingChart"></canvas></div>',
         '</div>',
@@ -103,13 +107,17 @@ window.netzeroDashboard.components.Charts = {
     ].join('\n');
   },
 
-  _legend: function () {
-    return [
+  _legend: function (withReference) {
+    var items = [
       '<div class="nz-legend">',
       '  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ink)"></span>Actual</span>',
-      '  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-green)"></span>Model</span>',
-      '</div>'
-    ].join('');
+      '  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-green)"></span>Model</span>'
+    ];
+    if (withReference) {
+      items.push('  <span class="nz-legend-item"><span class="nz-legend-swatch" style="background:var(--nz-bar-ref)"></span>Reference</span>');
+    }
+    items.push('</div>');
+    return items.join('');
   },
 
   _makeOpts: function () {
@@ -166,15 +174,16 @@ window.netzeroDashboard.components.Charts = {
     if (live.building) {
       var bEl = container.querySelector('#nzBuildingChart');
       if (bEl) {
+        var bldgDatasets = [
+          { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.6 },
+          { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#8FB574', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.6 }
+        ];
+        if (data.charts.building.reference) {
+          bldgDatasets.push({ label: 'Reference', data: data.charts.building.reference, backgroundColor: '#7A9ABE', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.6 });
+        }
         new C(bEl, {
           type: 'bar',
-          data: {
-            labels: months,
-            datasets: [
-              { label: 'Actual', data: data.charts.building.actual, backgroundColor: '#2e3a4e', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 },
-              { label: 'Model',  data: data.charts.building.model,  backgroundColor: '#8FB574', borderRadius: 2, barPercentage: 1.0, categoryPercentage: 0.5 }
-            ]
-          },
+          data: { labels: months, datasets: bldgDatasets },
           options: opts
         });
       }

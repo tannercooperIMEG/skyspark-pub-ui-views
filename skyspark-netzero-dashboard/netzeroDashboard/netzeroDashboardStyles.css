@@ -27,6 +27,7 @@
   --nz-purple-lt:  #EDE9FE;
   --nz-bar-ink:    #2e3a4e;
   --nz-bar-ghost:  #dde8f0;
+  --nz-bar-ref:    #7A9ABE;
 }
 
 /* ── Reset ─────────────────────────────────────────── */
@@ -358,6 +359,7 @@ select.nz-meta-item {
 .nz-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 .nz-dot-a { background: var(--nz-bar-ink); }
 .nz-dot-m { background: var(--nz-green); }
+.nz-dot-r { background: var(--nz-bar-ref); }
 .nz-dot-d { background: var(--nz-400); }
 #netzeroDashboard tr.nz-diff-row td {
   font-size: 11px !important; color: var(--nz-500) !important; border-bottom: none !important;
