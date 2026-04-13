@@ -187,13 +187,14 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
     if (months.length === 0) return null;
 
     // Find rows by dis label
-    var actualRow = null, modelRow = null, diffRow = null;
+    var actualRow = null, modelRow = null, diffRow = null, referenceRow = null;
     for (var r = 0; r < rawGrid.rows.length; r++) {
       var row = rawGrid.rows[r];
       var label = (row.dis || '').toLowerCase();
       if (label === 'actual' || label === 'nzactual') actualRow = row;
       else if (label === 'model' || label === 'nzmodel') modelRow = row;
       else if (label === 'difference' || label === 'diff') diffRow = row;
+      else if (label === 'reference' || label === 'nzreference') referenceRow = row;
     }
 
     if (!actualRow) return null;
@@ -220,6 +221,7 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
     var actual = extractValues(actualRow);
     var model = extractValues(modelRow);
     var diff = extractValues(diffRow);
+    var reference = extractValues(referenceRow);
 
     // If no diff row, compute from actual - model
     if (!diff && model) {
@@ -239,7 +241,7 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
 
     // Pad to 12 months so the view always shows a full year
     var ALL_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    var padded = _padTo12(ALL_MONTHS, months, { actual: actual, model: model, diff: diff });
+    var padded = _padTo12(ALL_MONTHS, months, { actual: actual, model: model, diff: diff, reference: reference });
 
     return padded;
   }
@@ -255,17 +257,20 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
       lookup[dataMonths[i]] = i;
     }
 
-    var result = { months: allMonths, actual: [], model: [], diff: [] };
+    var hasRef = !!series.reference;
+    var result = { months: allMonths, actual: [], model: [], diff: [], reference: hasRef ? [] : null };
     for (var m = 0; m < allMonths.length; m++) {
       var idx = lookup[allMonths[m]];
       if (idx !== undefined) {
         result.actual.push(series.actual[idx]);
         result.model.push(series.model[idx]);
         result.diff.push(series.diff[idx]);
+        if (hasRef) result.reference.push(series.reference[idx]);
       } else {
         result.actual.push(null);
         result.model.push(null);
         result.diff.push(null);
+        if (hasRef) result.reference.push(null);
       }
     }
     return result;
@@ -345,16 +350,16 @@ window.netzeroDashboard.evals = window.netzeroDashboard.evals || {};
       // Override charts + detail tables if we have live monthly data
       if (buildingData) {
         data.charts.months = buildingData.months;
-        data.charts.building = { actual: buildingData.actual, model: buildingData.model };
+        data.charts.building = { actual: buildingData.actual, model: buildingData.model, reference: buildingData.reference };
         data.detail.months = buildingData.months;
-        data.detail.buildingConsumption = { actual: buildingData.actual, model: buildingData.model, diff: buildingData.diff };
+        data.detail.buildingConsumption = { actual: buildingData.actual, model: buildingData.model, diff: buildingData.diff, reference: buildingData.reference };
       }
 
       if (solarData) {
         if (!buildingData) data.charts.months = solarData.months;
-        data.charts.solar = { actual: solarData.actual, model: solarData.model };
+        data.charts.solar = { actual: solarData.actual, model: solarData.model, reference: solarData.reference };
         if (!buildingData) data.detail.months = solarData.months;
-        data.detail.solarGeneration = { actual: solarData.actual, model: solarData.model, diff: solarData.diff };
+        data.detail.solarGeneration = { actual: solarData.actual, model: solarData.model, diff: solarData.diff, reference: solarData.reference };
       }
 
       if (netZeroData) {
