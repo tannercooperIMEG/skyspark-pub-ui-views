@@ -2,25 +2,8 @@
 window.mbcxDashboard = window.mbcxDashboard || {};
 window.mbcxDashboard.components = window.mbcxDashboard.components || {};
 
-/* ── Fallback demo data (used when no site context is available) ── */
-var TU_DEMO_VAVS = [
-  { name:'VAV-L1-01', damper_pct:72,  zone_sp_f:70, zone_temp_f:74.5, reheat_valve_pct:0,  occ:1, airflow_cfm:450, airflow_sp_cfm:500, sat_f:57.0 },
-  { name:'VAV-L1-02', damper_pct:45,  zone_sp_f:70, zone_temp_f:66.0, reheat_valve_pct:80, occ:1, airflow_cfm:320, airflow_sp_cfm:400, sat_f:95.0 },
-  { name:'VAV-L1-03', damper_pct:95,  zone_sp_f:70, zone_temp_f:71.0, reheat_valve_pct:0,  occ:1, airflow_cfm:610, airflow_sp_cfm:600, sat_f:58.0 },
-  { name:'VAV-L1-04', damper_pct:30,  zone_sp_f:70, zone_temp_f:74.0, reheat_valve_pct:5,  occ:1, airflow_cfm:280, airflow_sp_cfm:400, sat_f:54.0 },
-  { name:'VAV-L1-05', damper_pct:10,  zone_sp_f:70, zone_temp_f:73.0, reheat_valve_pct:85, occ:1, airflow_cfm:500, airflow_sp_cfm:500, sat_f:61.0 },
-  { name:'VAV-L1-06', damper_pct:88,  zone_sp_f:70, zone_temp_f:68.0, reheat_valve_pct:0,  occ:0, airflow_cfm:550, airflow_sp_cfm:600, sat_f:57.0 },
-  { name:'VAV-L2-01', damper_pct:65,  zone_sp_f:72, zone_temp_f:72.0, reheat_valve_pct:0,  occ:1, airflow_cfm:700, airflow_sp_cfm:700, sat_f:55.0 },
-  { name:'VAV-L2-02', damper_pct:20,  zone_sp_f:70, zone_temp_f:75.0, reheat_valve_pct:0,  occ:1, airflow_cfm:150, airflow_sp_cfm:400, sat_f:56.0 },
-  { name:'VAV-L2-03', damper_pct:78,  zone_sp_f:70, zone_temp_f:70.5, reheat_valve_pct:0,  occ:1, airflow_cfm:480, airflow_sp_cfm:500, sat_f:56.0 },
-  { name:'VAV-L2-04', damper_pct:55,  zone_sp_f:70, zone_temp_f:69.0, reheat_valve_pct:40, occ:1, airflow_cfm:420, airflow_sp_cfm:500, sat_f:88.0 },
-  { name:'VAV-L2-05', damper_pct:100, zone_sp_f:70, zone_temp_f:73.0, reheat_valve_pct:0,  occ:1, airflow_cfm:900, airflow_sp_cfm:900, sat_f:57.0 },
-  { name:'VAV-L2-06', damper_pct:0,   zone_sp_f:70, zone_temp_f:72.0, reheat_valve_pct:0,  occ:1, airflow_cfm:10,  airflow_sp_cfm:300, sat_f:55.0 },
-];
-
-/* ── Column display labels (live server names + demo names) ── */
+/* ── Column display labels ── */
 var TU_COL_LABELS = {
-  // Live server columns
   vav:              'VAV',
   areaserved:       'Area Served',
   zoneTempAvg:      'Zone Temp Avg',
@@ -30,16 +13,6 @@ var TU_COL_LABELS = {
   airflowSpAvg:     'Airflow SP Avg',
   damperAvg:        'Damper Avg',
   occPct:           'Occ %',
-  // Demo columns
-  name:             'Name',
-  damper_pct:       'Damper %',
-  zone_sp_f:        'Zone SP \u00b0F',
-  zone_temp_f:      'Zone Temp \u00b0F',
-  reheat_valve_pct: 'Reheat Valve %',
-  occ:              'Occ',
-  airflow_cfm:      'Airflow CFM',
-  airflow_sp_cfm:   'Airflow SP CFM',
-  sat_f:            'SAT \u00b0F',
 };
 
 function _tuAvg(rows, key) {
@@ -49,8 +22,7 @@ function _tuAvg(rows, key) {
   return vals.length ? vals.reduce(function(s, v) { return s + (+v); }, 0) / vals.length : null;
 }
 
-/* Find the first column name that contains any of the given substrings (case-insensitive) */
-function _findCol(cols, patterns) {
+function _tuFindCol(cols, patterns) {
   for (var i = 0; i < patterns.length; i++) {
     for (var j = 0; j < cols.length; j++) {
       if (cols[j].toLowerCase().indexOf(patterns[i]) !== -1) return cols[j];
@@ -61,9 +33,11 @@ function _findCol(cols, patterns) {
 
 window.mbcxDashboard.components.TerminalUnits = {
 
-  render: function (d) {
+  _state: null, // { rows, cols, sortCol, sortDir, filter }
+
+  render: function () {
     return [
-      '<div class="equip-section equip-section--collapsible" id="mbcxTerminalUnitsSection" style="border-left-color:#C2410C;">',
+      '<div class="equip-section equip-section--collapsible equip-section--open" id="mbcxTerminalUnitsSection" style="border-left-color:#C2410C;">',
       '  <div class="equip-header equip-header--clickable" onclick="this.closest(\'.equip-section\').classList.toggle(\'equip-section--open\');">',
       '    <div class="equip-header-left">',
       '      <div class="equip-icon" style="background:var(--orange-lt);">',
@@ -71,13 +45,20 @@ window.mbcxDashboard.components.TerminalUnits = {
       '      </div>',
       '      <div><div class="equip-title">Terminal Units</div><div class="equip-meta" id="tuMeta">&mdash; VAVs</div></div>',
       '    </div>',
-      '    <div class="equip-collapse-btn" title="Expand / Collapse">',
-      '      <svg class="equip-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+      '    <div style="display:flex;align-items:center;gap:8px;">',
+      '      <button class="ahu-fs-btn" id="tuFsBtn" title="Toggle fullscreen" onclick="event.stopPropagation();">',
+      '        <svg id="tuFsIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">',
+      '          <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>',
+      '          <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>',
+      '        </svg>',
+      '      </button>',
+      '      <div class="equip-collapse-btn" title="Expand / Collapse">',
+      '        <svg class="equip-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>',
+      '      </div>',
       '    </div>',
       '  </div>',
       '  <div class="equip-body">',
 
-      /* Fleet KPI strip */
       '    <div class="tu-kpi-strip">',
       '      <div class="tu-kpi"><div class="tu-kpi-label">Total VAVs</div><div class="tu-kpi-val" id="tuKpiTotal">&mdash;</div><div class="tu-kpi-unit">units</div></div>',
       '      <div class="tu-kpi"><div class="tu-kpi-label">Avg Zone Temp</div><div class="tu-kpi-val" id="tuKpiZone">&mdash;</div><div class="tu-kpi-unit">&deg;F</div></div>',
@@ -85,18 +66,15 @@ window.mbcxDashboard.components.TerminalUnits = {
       '      <div class="tu-kpi"><div class="tu-kpi-label">Avg Reheat Valve</div><div class="tu-kpi-val" id="tuKpiReheat">&mdash;</div><div class="tu-kpi-unit">%</div></div>',
       '    </div>',
 
-      /* View toggle */
       '    <div class="toggle-bar" style="margin-bottom:16px;">',
       '      <button class="toggle-btn active" id="tuBtnTable">VAV Table</button>',
       '      <button class="toggle-btn" id="tuBtnScatter">VAV Reheat Scatter</button>',
       '    </div>',
 
-      /* Table view */
-      '    <div id="tuTableView" style="overflow-x:auto;">',
+      '    <div id="tuTableView">',
       '      <div class="tu-loading">Loading VAV data\u2026</div>',
       '    </div>',
 
-      /* Scatter view */
       '    <div id="tuScatterView" style="display:none;">',
       '      <div style="position:relative;height:360px;"><canvas id="tuScatterCanvas"></canvas></div>',
       '    </div>',
@@ -108,28 +86,80 @@ window.mbcxDashboard.components.TerminalUnits = {
 
   initLive: function (container, ctx) {
     var self = this;
-    var header = container.querySelector('#mbcxTerminalUnitsSection .equip-header--clickable');
-    if (!header) return;
+    var loaded = false;
 
-    var populated = false;
-    header.addEventListener('click', function () {
-      if (populated) return;
-      populated = true;
-      setTimeout(function () {
-        if (ctx && ctx.attestKey && ctx.siteRef) {
-          self._fetchLive(container, ctx);
+    function load() {
+      if (loaded) return;
+      loaded = true;
+      if (ctx && ctx.attestKey && ctx.siteRef) {
+        self._fetchLive(container, ctx);
+      } else {
+        self._showEmpty(container, 'No site selected \u2014 configure a site to load VAV data.');
+      }
+    }
+
+    // Section is open by default — load immediately
+    load();
+
+    // Re-trigger is a no-op after first load
+    var header = container.querySelector('#mbcxTerminalUnitsSection .equip-header--clickable');
+    if (header) header.addEventListener('click', function () { setTimeout(load, 50); });
+
+    // Fullscreen button
+    var fsBtn    = container.querySelector('#tuFsBtn');
+    var fsIcon   = container.querySelector('#tuFsIcon');
+    var section  = container.querySelector('#mbcxTerminalUnitsSection');
+    if (fsBtn && section) {
+      fsBtn.addEventListener('click', function () {
+        var expand = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+        var collapse = '<polyline points="4 14 10 14 10 20"/><polyline points="20 4 14 4 14 10"/><line x1="10" y1="14" x2="3" y2="21"/><line x1="21" y1="3" x2="14" y2="10"/>';
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+          if (fsIcon) fsIcon.innerHTML = expand;
         } else {
-          var demoCols = Object.keys(TU_DEMO_VAVS[0]);
-          self._populate(container, TU_DEMO_VAVS, demoCols);
+          var req = section.requestFullscreen || section.webkitRequestFullscreen;
+          if (req) req.call(section);
+          if (fsIcon) fsIcon.innerHTML = collapse;
         }
-      }, 50);
-    });
+      });
+      document.addEventListener('fullscreenchange', function () {
+        if (!document.fullscreenElement && fsIcon) {
+          fsIcon.innerHTML = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+        }
+      });
+    }
+
+    // Toggle wiring (done once, before data arrives)
+    var btnTable    = container.querySelector('#tuBtnTable');
+    var btnScatter  = container.querySelector('#tuBtnScatter');
+    var tableView   = container.querySelector('#tuTableView');
+    var scatterView = container.querySelector('#tuScatterView');
+    var scatterInited = false;
+
+    if (btnTable) {
+      btnTable.addEventListener('click', function () {
+        btnTable.classList.add('active'); btnScatter.classList.remove('active');
+        tableView.style.display = ''; scatterView.style.display = 'none';
+      });
+    }
+    if (btnScatter) {
+      btnScatter.addEventListener('click', function () {
+        btnScatter.classList.add('active'); btnTable.classList.remove('active');
+        tableView.style.display = 'none'; scatterView.style.display = '';
+        if (!scatterInited && self._state) {
+          scatterInited = true;
+          setTimeout(function () {
+            self._initScatter(container.querySelector('#tuScatterCanvas'), self._state.rows, self._state.cols);
+          }, 30);
+        }
+      });
+    }
   },
 
   _fetchLive: function (container, ctx) {
     var self = this;
-    var API = window.mbcxDashboard.api;
-    var HP  = window.mbcxDashboard.haystackParser;
+    var API  = window.mbcxDashboard.api;
+    var HP   = window.mbcxDashboard.haystackParser;
 
     var dateArg = (ctx.datesStart && ctx.datesEnd)
       ? ctx.datesStart + '..' + ctx.datesEnd
@@ -139,94 +169,163 @@ window.mbcxDashboard.components.TerminalUnits = {
     API.evalAxon(ctx.attestKey, ctx.projectName, expr)
       .then(function (grid) {
         var parsed = HP.parseGrid(grid);
-        self._populate(container, parsed.rows, parsed.cols);
+        if (!parsed.rows.length) {
+          self._showEmpty(container, 'No VAV data returned for this site and date range.');
+        } else {
+          self._populate(container, parsed.rows, parsed.cols);
+        }
       })
       .catch(function (err) {
         console.error('[TU] VAV table fetch failed:', err);
-        // Fall back to demo data on error
-        var demoCols = Object.keys(TU_DEMO_VAVS[0]);
-        self._populate(container, TU_DEMO_VAVS, demoCols);
+        self._showEmpty(container, 'Failed to load VAV data. See console for details.');
       });
   },
 
-  _populate: function (container, rows, cols) {
-    var self = this;
+  _showEmpty: function (container, msg) {
+    var el = container.querySelector('#tuTableView');
+    if (el) el.innerHTML = '<div class="tu-loading">' + msg + '</div>';
+    var el2 = container.querySelector('#tuMeta');
+    if (el2) el2.textContent = '\u2014 VAVs';
+  },
 
-    /* KPIs */
-    var zoneCol   = _findCol(cols, ['zonetemp', 'zone_temp']);
-    var satCol    = _findCol(cols, ['satavg', 'sat_f', 'supplyairtemp', 'sat']);
-    var reheatCol = _findCol(cols, ['reheat']);
+  _populate: function (container, rows, cols) {
     var set = function (id, val) { var el = container.querySelector('#' + id); if (el) el.textContent = val; };
+
+    var zoneCol   = _tuFindCol(cols, ['zonetemp', 'zone_temp']);
+    var satCol    = _tuFindCol(cols, ['satavg', 'sat_f', 'supplyair', 'sat']);
+    var reheatCol = _tuFindCol(cols, ['reheat']);
+
+    var fmt = function (v) { return v !== null ? v.toFixed(1) : '\u2014'; };
     set('tuKpiTotal',  rows.length);
-    set('tuKpiZone',   zoneCol   ? (_tuAvg(rows, zoneCol)   !== null ? _tuAvg(rows, zoneCol).toFixed(1)   : '\u2014') : '\u2014');
-    set('tuKpiDat',    satCol    ? (_tuAvg(rows, satCol)    !== null ? _tuAvg(rows, satCol).toFixed(1)    : '\u2014') : '\u2014');
-    set('tuKpiReheat', reheatCol ? (_tuAvg(rows, reheatCol) !== null ? _tuAvg(rows, reheatCol).toFixed(1) : '\u2014') : '\u2014');
+    set('tuKpiZone',   zoneCol   ? fmt(_tuAvg(rows, zoneCol))   : '\u2014');
+    set('tuKpiDat',    satCol    ? fmt(_tuAvg(rows, satCol))    : '\u2014');
+    set('tuKpiReheat', reheatCol ? fmt(_tuAvg(rows, reheatCol)) : '\u2014');
     set('tuMeta', rows.length + ' VAVs');
 
-    /* Table */
     this._buildTable(container, rows, cols);
-
-    /* Toggle wiring */
-    var btnTable    = container.querySelector('#tuBtnTable');
-    var btnScatter  = container.querySelector('#tuBtnScatter');
-    var tableView   = container.querySelector('#tuTableView');
-    var scatterView = container.querySelector('#tuScatterView');
-    var scatterInited = false;
-
-    btnTable.addEventListener('click', function () {
-      btnTable.classList.add('active');
-      btnScatter.classList.remove('active');
-      tableView.style.display = '';
-      scatterView.style.display = 'none';
-    });
-
-    btnScatter.addEventListener('click', function () {
-      btnScatter.classList.add('active');
-      btnTable.classList.remove('active');
-      tableView.style.display = 'none';
-      scatterView.style.display = '';
-      if (!scatterInited) {
-        scatterInited = true;
-        setTimeout(function () {
-          self._initScatter(container.querySelector('#tuScatterCanvas'), rows, cols);
-        }, 30);
-      }
-    });
   },
 
   _buildTable: function (container, rows, cols) {
+    var self = this;
+    this._state = { rows: rows, cols: cols, sortCol: null, sortDir: 1, filter: '' };
+
     var tableView = container.querySelector('#tuTableView');
     if (!tableView) return;
 
-    if (!rows.length) {
-      tableView.innerHTML = '<div class="tu-loading">No VAV data returned.</div>';
-      return;
+    tableView.innerHTML = [
+      '<div class="tu-filter-bar">',
+      '  <input class="tu-filter-input" id="tuFilterInput" type="text" placeholder="Filter\u2026" autocomplete="off" />',
+      '  <span class="tu-filter-count" id="tuFilterCount">' + rows.length + '\u2009/\u2009' + rows.length + ' VAVs</span>',
+      '</div>',
+      '<div style="overflow-x:auto;">',
+      '  <table class="tu-table">',
+      '    <thead id="tuThead"></thead>',
+      '    <tbody id="tuTbody"></tbody>',
+      '  </table>',
+      '</div>'
+    ].join('\n');
+
+    // Build sortable header
+    var thead = container.querySelector('#tuThead');
+    thead.innerHTML = '<tr>' + cols.map(function (k) {
+      return '<th class="tu-th tu-th-sort" data-col="' + k + '">' +
+        (TU_COL_LABELS[k] || k) +
+        '<span class="tu-sort-ind" data-col="' + k + '"></span>' +
+        '</th>';
+    }).join('') + '</tr>';
+
+    // Sort click handlers
+    var ths = thead.querySelectorAll('.tu-th-sort');
+    ths.forEach(function (th) {
+      th.addEventListener('click', function () {
+        var col = th.getAttribute('data-col');
+        if (self._state.sortCol === col) {
+          self._state.sortDir *= -1;
+        } else {
+          self._state.sortCol = col;
+          self._state.sortDir = 1;
+        }
+        self._rebuildTbody(container);
+      });
+    });
+
+    // Filter input handler
+    var filterInput = container.querySelector('#tuFilterInput');
+    if (filterInput) {
+      filterInput.addEventListener('input', function () {
+        self._state.filter = filterInput.value;
+        self._rebuildTbody(container);
+      });
     }
 
-    var thead = '<thead><tr>' + cols.map(function (k) {
-      return '<th class="tu-th">' + (TU_COL_LABELS[k] || k) + '</th>';
-    }).join('') + '</tr></thead>';
+    this._rebuildTbody(container);
+  },
 
-    var tbody = '<tbody>' + rows.map(function (row) {
-      return '<tr>' + cols.map(function (k, i) {
+  _rebuildTbody: function (container) {
+    var s    = this._state;
+    var rows = this._getDisplayRows();
+    var tbody = container.querySelector('#tuTbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = rows.map(function (row) {
+      return '<tr>' + s.cols.map(function (k, i) {
         var val = row[k];
-        if (k === 'occ') val = val === 1 ? 'Occ' : val === 0 ? 'Unocc' : val;
-        // Format Ref objects (from haystackParser) to their display string
         if (val && typeof val === 'object' && val.dis) val = val.dis;
-        var cls = i === 0 ? 'tu-td tu-td-name' : 'tu-td tu-td-num';
+        var cls = i === 0 ? 'tu-td tu-td-name' : 'tu-td';
         return '<td class="' + cls + '">' + (val !== null && val !== undefined ? val : '\u2014') + '</td>';
       }).join('') + '</tr>';
-    }).join('') + '</tbody>';
+    }).join('');
 
-    tableView.innerHTML = '<table class="tu-table">' + thead + tbody + '</table>';
+    // Update sort indicators
+    var inds = container.querySelectorAll('#tuThead .tu-sort-ind');
+    inds.forEach(function (ind) {
+      var col = ind.getAttribute('data-col');
+      ind.textContent = s.sortCol === col ? (s.sortDir === 1 ? '\u00a0\u25b2' : '\u00a0\u25bc') : '';
+    });
+
+    // Update count
+    var countEl = container.querySelector('#tuFilterCount');
+    if (countEl) countEl.textContent = rows.length + '\u2009/\u2009' + s.rows.length + ' VAVs';
+  },
+
+  _getDisplayRows: function () {
+    var s = this._state;
+    var rows = s.rows;
+
+    if (s.filter) {
+      var q = s.filter.toLowerCase();
+      rows = rows.filter(function (row) {
+        return s.cols.some(function (col) {
+          var v = row[col];
+          if (v === null || v === undefined) return false;
+          var str = (v && v.dis) ? v.dis : String(v);
+          return str.toLowerCase().indexOf(q) !== -1;
+        });
+      });
+    }
+
+    if (s.sortCol) {
+      var col = s.sortCol, dir = s.sortDir;
+      rows = rows.slice().sort(function (a, b) {
+        var av = a[col], bv = b[col];
+        if (av === null || av === undefined) return dir;
+        if (bv === null || bv === undefined) return -dir;
+        var an = parseFloat(av), bn = parseFloat(bv);
+        if (!isNaN(an) && !isNaN(bn)) return (an - bn) * dir;
+        return String(av).localeCompare(String(bv)) * dir;
+      });
+    }
+
+    return rows;
   },
 
   _initScatter: function (canvas, rows, cols) {
     if (!canvas || !window.Chart) return;
 
-    var xCol    = _findCol(cols, ['zonetemp', 'zone_temp']);
-    var yCol    = _findCol(cols, ['reheat']);
-    var sizeCol = _findCol(cols, ['airflow', 'cfm']);
+    var xCol    = _tuFindCol(cols, ['zonetemp', 'zone_temp']);
+    var yCol    = _tuFindCol(cols, ['reheat']);
+    var sizeCol = _tuFindCol(cols, ['airflow', 'cfm']);
+    var nameCol = _tuFindCol(cols, ['vav', 'name']);
 
     if (!xCol || !yCol) {
       var wrap = canvas.parentElement;
@@ -235,13 +334,12 @@ window.mbcxDashboard.components.TerminalUnits = {
     }
 
     var points = rows.map(function (r) {
-      var rv  = +(r[yCol]) || 0;
+      var rv  = +(r[yCol])  || 0;
+      var rad = sizeCol ? Math.max(5, Math.min(18, (+r[sizeCol] || 0) / 60)) : 7;
       var bg  = rv >= 60 ? 'rgba(155,35,53,0.80)'
               : rv >= 20 ? 'rgba(217,119,6,0.75)'
               :            'rgba(74,111,165,0.60)';
-      var rad = sizeCol ? Math.max(5, Math.min(18, (+r[sizeCol] || 0) / 60)) : 7;
-      var nameCol = _findCol(cols, ['vav', 'name']);
-      return { x: +(r[xCol]) || 0, y: rv, r: rad, name: nameCol ? r[nameCol] : '', bg: bg };
+      return { x: +(r[xCol]) || 0, y: rv, r: rad, name: nameCol ? r[nameCol] : '', bg: bg, row: r };
     });
 
     new window.Chart(canvas, {
@@ -256,24 +354,18 @@ window.mbcxDashboard.components.TerminalUnits = {
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1F2937',
-            titleFont: { size: 12, weight: '600' },
-            bodyFont: { size: 11 },
-            padding: 10,
-            cornerRadius: 6,
+            backgroundColor: '#1F2937', titleFont: { size: 12, weight: '600' },
+            bodyFont: { size: 11 }, padding: 10, cornerRadius: 6,
             callbacks: {
               title: function (items) { return points[items[0].dataIndex].name || 'VAV'; },
               label: function (item) {
-                var lines = [
-                  'Zone Temp: ' + item.raw.x + '\u00b0F',
-                  'Reheat Valve: ' + item.raw.y + '%'
-                ];
-                if (sizeCol) lines.push('Airflow: ' + (rows[item.dataIndex][sizeCol] || '\u2014') + ' CFM');
+                var p = points[item.dataIndex];
+                var lines = ['Zone Temp: ' + p.x + '\u00b0F', 'Reheat Valve: ' + p.y + '%'];
+                if (sizeCol) lines.push('Airflow: ' + (p.row[sizeCol] || '\u2014') + ' CFM');
                 return lines;
               }
             }
@@ -282,8 +374,7 @@ window.mbcxDashboard.components.TerminalUnits = {
         scales: {
           x: {
             title: { display: true, text: 'Zone Temp (\u00b0F)', font: { size: 11 }, color: '#9CA3AF' },
-            ticks: { font: { size: 10 }, color: '#9CA3AF' },
-            grid: { color: '#F3F4F6' }
+            ticks: { font: { size: 10 }, color: '#9CA3AF' }, grid: { color: '#F3F4F6' }
           },
           y: {
             min: 0, max: 100,

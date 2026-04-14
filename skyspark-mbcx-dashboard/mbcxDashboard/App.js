@@ -72,7 +72,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
         co.BuildingMeters.render(data),
         co.CUP.render(data),
         co.AHU.render(data),
-        co.TerminalUnits.render(data),
+        co.TerminalUnits.render(),
         '</div>'
       ].join('\n');
 

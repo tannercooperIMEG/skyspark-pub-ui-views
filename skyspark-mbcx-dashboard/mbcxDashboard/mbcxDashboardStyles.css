@@ -537,26 +537,51 @@
 #mbcxDashboard .tu-kpi-unit { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
 
 /* ── Terminal Units table ── */
-#mbcxDashboard .tu-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+#mbcxDashboard .tu-table { width: auto; border-collapse: collapse; font-size: 12px; }
 #mbcxDashboard .tu-th {
-  text-align: left; padding: 6px 10px;
+  padding: 6px 14px;
   font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--gray-400); background: var(--gray-50);
   border-bottom: 1px solid var(--gray-200); white-space: nowrap;
+  text-align: center;
 }
 #mbcxDashboard .tu-td {
-  padding: 7px 10px; border-bottom: 1px solid var(--gray-100);
-  color: var(--gray-700); white-space: nowrap;
-}
-#mbcxDashboard .tu-td-name { font-weight: 500; color: var(--gray-800); }
-#mbcxDashboard .tu-td-num {
-  text-align: right; font-variant-numeric: tabular-nums;
+  padding: 7px 14px; border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700); white-space: nowrap; text-align: center;
+  font-variant-numeric: tabular-nums;
   font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
 }
+#mbcxDashboard .tu-td-name {
+  text-align: left; font-weight: 500; color: var(--gray-800);
+  font-family: inherit;
+}
 #mbcxDashboard .tu-table tbody tr:hover td { background: var(--gray-50); }
+
+/* Sortable header */
+#mbcxDashboard .tu-th-sort { cursor: pointer; user-select: none; transition: background 0.1s; }
+#mbcxDashboard .tu-th-sort:hover { background: var(--gray-100); color: var(--gray-600); }
+#mbcxDashboard .tu-sort-ind { color: var(--imeg-blue); font-size: 8px; }
+
+/* Filter bar */
+#mbcxDashboard .tu-filter-bar {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+}
+#mbcxDashboard .tu-filter-input {
+  font-size: 12px; font-family: inherit; color: var(--gray-700);
+  background: var(--gray-50); border: 1px solid var(--gray-200);
+  border-radius: 5px; padding: 5px 10px; outline: none; width: 200px;
+  transition: border-color 0.15s;
+}
+#mbcxDashboard .tu-filter-input:focus { border-color: var(--imeg-blue); background: #fff; }
+#mbcxDashboard .tu-filter-count { font-size: 11px; color: var(--gray-400); }
+
 #mbcxDashboard .tu-loading {
   padding: 2rem; text-align: center; color: var(--gray-400); font-size: 13px;
 }
+
+/* Fullscreen */
+#mbcxTerminalUnitsSection:fullscreen { background: #fff; padding: 24px; overflow-y: auto; }
+#mbcxTerminalUnitsSection:-webkit-full-screen { background: #fff; padding: 24px; overflow-y: auto; }
 
 /* ── Dashboard title bar ── */
 #mbcxDashboard .dash-title-bar {
