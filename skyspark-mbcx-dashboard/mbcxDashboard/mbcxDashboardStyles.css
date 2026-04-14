@@ -554,6 +554,9 @@
   font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
 }
 #mbcxDashboard .tu-table tbody tr:hover td { background: var(--gray-50); }
+#mbcxDashboard .tu-loading {
+  padding: 2rem; text-align: center; color: var(--gray-400); font-size: 13px;
+}
 
 /* ── Dashboard title bar ── */
 #mbcxDashboard .dash-title-bar {
