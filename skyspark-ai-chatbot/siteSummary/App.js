@@ -43,7 +43,7 @@ window.siteSummary = window.siteSummary || {};
       '        <span class="ss-result-label">AI SUMMARY</span>',
       '        <span id="ss-site-name" class="ss-site-name"></span>',
       '      </div>',
-      '      <p id="ss-summary-text" class="ss-summary-text"></p>',
+      '      <div id="ss-summary-text" class="ss-summary-text"></div>',
       '    </div>',
       '    <div id="ss-error" class="ss-error ss-hidden">',
       '      <span class="ss-error-icon">&#9888;</span>',
@@ -72,7 +72,7 @@ window.siteSummary = window.siteSummary || {};
       '        <span class="ss-result-label">AI ANALYSIS</span>',
       '        <span id="ss-equip-name" class="ss-site-name"></span>',
       '      </div>',
-      '      <p id="ss-equip-text" class="ss-summary-text"></p>',
+      '      <div id="ss-equip-text" class="ss-summary-text"></div>',
       '    </div>',
       '    <div id="ss-equip-error" class="ss-error ss-hidden">',
       '      <span class="ss-error-icon">&#9888;</span>',
@@ -242,7 +242,7 @@ window.siteSummary = window.siteSummary || {};
         }
         NS.App._setSiteLoading(false);
         NS.App._summaryContent.classList.remove('ss-hidden');
-        NS.App._summaryText.textContent = text;
+        NS.App._summaryText.innerHTML = _renderMarkdown(text);
         NS.App._siteName.textContent = siteDis;
       })
       .catch(function (err) {
@@ -289,7 +289,7 @@ window.siteSummary = window.siteSummary || {};
         if (gen !== NS.App._equipGenCtr) return;
         NS.App._setEquipLoading(false);
         NS.App._equipContent.classList.remove('ss-hidden');
-        NS.App._equipText.textContent = text;
+        NS.App._equipText.innerHTML = _renderMarkdown(text);
         NS.App._equipName.textContent = equipDis;
       })
       .catch(function (err) {
@@ -301,6 +301,18 @@ window.siteSummary = window.siteSummary || {};
   };
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function _renderMarkdown(text) {
+    if (typeof window.marked !== 'undefined') {
+      return window.marked.parse(text);
+    }
+    // Fallback: escape HTML and convert newlines
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
 
   function _opt(value, label) {
     var o = document.createElement('option');

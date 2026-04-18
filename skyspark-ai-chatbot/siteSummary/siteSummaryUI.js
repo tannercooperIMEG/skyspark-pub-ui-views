@@ -16,12 +16,25 @@ window.siteSummary = window.siteSummary || {};
     document.head.appendChild(link);
   }
 
+  function loadMarked(cb) {
+    if (window.marked) { cb(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://unpkg.com/marked@9/marked.min.js';
+    s.onload = cb;
+    s.onerror = function () {
+      console.warn('[siteSummary] marked.js failed to load — falling back to plain text.');
+      cb();
+    };
+    document.head.appendChild(s);
+  }
+
   NS.onUpdate = function (arg) {
     var view = arg.view;
     var elem = arg.elem;
     view.removeAll();
 
     loadStyles();
+    loadMarked(function () {});
 
     elem.style.width  = '100%';
     elem.style.height = '100%';
