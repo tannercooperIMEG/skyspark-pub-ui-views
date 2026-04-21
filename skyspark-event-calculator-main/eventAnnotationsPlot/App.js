@@ -692,8 +692,14 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
       });
     }
 
-    // Initial load
-    loadDataForSite();
+    // If the Events Database was open before this refresh, re-open it.
+    // Clear stale saved content first (old DOM nodes were destroyed by view.removeAll())
+    if (eventsDatabase && state.eventsDatabaseState && state.eventsDatabaseState.isOpen) {
+      state.eventsDatabaseState._savedContent = null;
+      eventsDatabase.openPanel(mainContainer, state);
+    } else {
+      loadDataForSite();
+    }
 
     // Start polling for variable changes
     skyspark.startPolling(view, {
@@ -707,7 +713,11 @@ window.EventAnnotationsPlot.onUpdate = function(arg) {
       state._selectedSite = newSite;
       state._startDate = newStartDate;
       state._endDate = newEndDate;
-      loadDataForSite();
+
+      // If Events Database is open, stay in it (user can Search again)
+      if (!(eventsDatabase && state.eventsDatabaseState && state.eventsDatabaseState.isOpen)) {
+        loadDataForSite();
+      }
     });
   });
 };

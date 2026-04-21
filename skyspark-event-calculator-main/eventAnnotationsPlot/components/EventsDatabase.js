@@ -113,15 +113,7 @@ window.EventAnnotationsPlot.eventsDatabase.openPanel = function(mainContainer, s
   tablePanel.className = 'edb-table-panel';
   content.appendChild(tablePanel);
 
-  // ── Pre-populate date filters with SkySpark date range ────────────
-  if (state._startDate && !dbState.filters.dateStart) {
-    dbState.filters.dateStart = state._startDate;
-  }
-  if (state._endDate && !dbState.filters.dateEnd) {
-    dbState.filters.dateEnd = state._endDate;
-  }
-
-  // Filter bar (date inputs will pick up pre-populated values)
+  // Filter bar
   edb.buildFilterBar(tablePanel, dbState, function() {
     edb._refresh(tablePanel, dbState);
   });
@@ -338,14 +330,10 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
   clearBtn.textContent = 'Clear';
   clearBtn.style.width = '100%';
   clearBtn.onclick = function() {
-    var st = window.EventAnnotationsPlot.state;
-    var defaultStart = st._startDate || '';
-    var defaultEnd = st._endDate || '';
-
     filters.nameSearch = '';
     filters.idSearch = '';
-    filters.dateStart = defaultStart;
-    filters.dateEnd = defaultEnd;
+    filters.dateStart = '';
+    filters.dateEnd = '';
     filters.sqftMin = null;
     filters.sqftMax = null;
     filters.costMin = null;
@@ -353,9 +341,7 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
 
     if (dbState._filterInputs) {
       dbState._filterInputs.forEach(function(ref) {
-        if (ref.key === 'dateStart') ref.input.value = defaultStart;
-        else if (ref.key === 'dateEnd') ref.input.value = defaultEnd;
-        else ref.input.value = '';
+        ref.input.value = '';
       });
     }
 
