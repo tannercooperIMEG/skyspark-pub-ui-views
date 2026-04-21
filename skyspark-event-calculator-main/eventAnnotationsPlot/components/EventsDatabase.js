@@ -195,8 +195,8 @@ window.EventAnnotationsPlot.eventsDatabase._loadData = function(tablePanel, dbSt
   tableWrap.appendChild(loading);
 
   var siteRef = state._selectedSite;
-  var startDate = dbState.filters.dateStart || state._startDate;
-  var endDate = dbState.filters.dateEnd || state._endDate;
+  var startDate = dbState.filters.dateStart;
+  var endDate = dbState.filters.dateEnd;
 
   if (!siteRef || !startDate || !endDate) {
     // Can't fetch without parameters — show empty state
@@ -204,8 +204,8 @@ window.EventAnnotationsPlot.eventsDatabase._loadData = function(tablePanel, dbSt
     var emptyDiv = document.createElement('div');
     emptyDiv.className = 'edb-empty-msg';
     emptyDiv.innerHTML = '<div style="font-size:36px;margin-bottom:12px;">\uD83D\uDCCB</div>' +
-      '<div style="font-size:15px;font-weight:600;margin-bottom:4px;">No Events Available</div>' +
-      '<div style="font-size:13px;">Select a site and date range first, then return here.</div>';
+      '<div style="font-size:15px;font-weight:600;margin-bottom:4px;">Date Range Required</div>' +
+      '<div style="font-size:13px;">Please enter a start and end date in the filters above, then click Search.</div>';
     tableWrap.appendChild(emptyDiv);
     return;
   }
@@ -366,7 +366,7 @@ window.EventAnnotationsPlot.eventsDatabase._renderTablePlaceholder = function(ta
   placeholder.innerHTML =
     '<div style="font-size:36px;margin-bottom:12px;">🔍</div>' +
     '<div style="font-size:15px;font-weight:600;margin-bottom:4px;">Set your filters and click Search</div>' +
-    '<div style="font-size:13px;">The date range is pre-filled from your SkySpark selection.</div>';
+    '<div style="font-size:13px;">Enter a date range and any additional filters to query events.</div>';
   tableWrap.appendChild(placeholder);
 };
 
