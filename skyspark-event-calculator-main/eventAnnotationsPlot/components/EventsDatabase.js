@@ -148,8 +148,10 @@ window.EventAnnotationsPlot.eventsDatabase.openPanel = function(mainContainer, s
   edb._renderSummaryPlaceholder(summaryPanel);
 
   // ── Load data ─────────────────────────────────────────────────────
+  // Don't auto-load — show empty state until user clicks Search
   dbState.allEvents = [];
-  edb._loadData(tablePanel, dbState);
+  dbState.filteredEvents = [];
+  edb._renderTablePlaceholder(dbState._tableWrap);
 };
 
 // ── Close Panel ─────────────────────────────────────────────────────────
@@ -278,22 +280,21 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
       }
       dbState.currentPage = 1;
 
-      if (isDateField) {
-        var newStart = filters.dateStart || window.EventAnnotationsPlot.state._startDate;
-        var newEnd = filters.dateEnd || window.EventAnnotationsPlot.state._endDate;
-        if (newStart !== dbState._loadedDateStart || newEnd !== dbState._loadedDateEnd) {
-          dbState.allEvents = [];
-          edb._loadData(tablePanel, dbState);
-          return;
-        }
+      // Date fields only take effect when Search is clicked — no auto-fetch
+      if (!isDateField && dbState.allEvents.length > 0) {
+        onFilterChange();
       }
-
-      onFilterChange();
-    }, isDateField ? 500 : (type === 'text' ? 300 : 0));
+    }, type === 'text' ? 300 : 0);
 
     input.addEventListener('input', handler);
     if (type === 'date') {
-      input.addEventListener('change', handler);
+      input.addEventListener('change', function() {
+        if (type === 'number') {
+          filters[key] = input.value === '' ? null : parseFloat(input.value);
+        } else {
+          filters[key] = input.value;
+        }
+      });
     }
 
     group.appendChild(input);
@@ -313,16 +314,30 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
   bar.appendChild(makeGroup('Cost Min', 'number', 'costMin', '$Min'));
   bar.appendChild(makeGroup('Cost Max', 'number', 'costMax', '$Max'));
 
-  // Clear filters button
-  var clearGroup = document.createElement('div');
-  clearGroup.className = 'edb-filter-group';
-  clearGroup.style.justifyContent = 'flex-end';
+  // Search button + Clear button group
+  var actionGroup = document.createElement('div');
+  actionGroup.className = 'edb-filter-group';
+  actionGroup.style.justifyContent = 'flex-end';
+  actionGroup.style.gap = '8px';
+  actionGroup.style.flexDirection = 'column';
+
+  var searchBtn = document.createElement('button');
+  searchBtn.textContent = 'Search';
+  searchBtn.style.cssText = 'padding:8px 18px;border:1px solid #1565c0;border-radius:6px;background:#1565c0;color:white;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;width:100%;';
+  searchBtn.onmouseover = function() { searchBtn.style.background = '#1976d2'; };
+  searchBtn.onmouseout = function() { searchBtn.style.background = '#1565c0'; };
+  searchBtn.onclick = function() {
+    dbState.allEvents = [];
+    dbState.currentPage = 1;
+    edb._loadData(tablePanel, dbState);
+  };
+  actionGroup.appendChild(searchBtn);
 
   var clearBtn = document.createElement('button');
   clearBtn.className = 'edb-clear-btn';
-  clearBtn.textContent = 'Clear Filters';
+  clearBtn.textContent = 'Clear';
+  clearBtn.style.width = '100%';
   clearBtn.onclick = function() {
-    // Reset dates to SkySpark defaults
     var st = window.EventAnnotationsPlot.state;
     var defaultStart = st._startDate || '';
     var defaultEnd = st._endDate || '';
@@ -336,32 +351,37 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
     filters.costMin = null;
     filters.costMax = null;
 
-    // Reset inputs
     if (dbState._filterInputs) {
       dbState._filterInputs.forEach(function(ref) {
-        if (ref.key === 'dateStart') {
-          ref.input.value = defaultStart;
-        } else if (ref.key === 'dateEnd') {
-          ref.input.value = defaultEnd;
-        } else {
-          ref.input.value = '';
-        }
+        if (ref.key === 'dateStart') ref.input.value = defaultStart;
+        else if (ref.key === 'dateEnd') ref.input.value = defaultEnd;
+        else ref.input.value = '';
       });
     }
 
-    dbState.currentPage = 1;
-    // Re-fetch if date range changed
-    if (defaultStart !== dbState._loadedDateStart || defaultEnd !== dbState._loadedDateEnd) {
-      dbState.allEvents = [];
-      edb._loadData(tablePanel, dbState);
-    } else {
+    // Only re-filter in-memory if data is already loaded
+    if (dbState.allEvents.length > 0) {
+      dbState.currentPage = 1;
       onFilterChange();
     }
   };
-  clearGroup.appendChild(clearBtn);
-  bar.appendChild(clearGroup);
+  actionGroup.appendChild(clearBtn);
+  bar.appendChild(actionGroup);
 
   parent.appendChild(bar);
+};
+
+// ── Table placeholder (shown before first search) ───────────────────────
+
+window.EventAnnotationsPlot.eventsDatabase._renderTablePlaceholder = function(tableWrap) {
+  tableWrap.innerHTML = '';
+  var placeholder = document.createElement('div');
+  placeholder.className = 'edb-empty-msg';
+  placeholder.innerHTML =
+    '<div style="font-size:36px;margin-bottom:12px;">🔍</div>' +
+    '<div style="font-size:15px;font-weight:600;margin-bottom:4px;">Set your filters and click Search</div>' +
+    '<div style="font-size:13px;">The date range is pre-filled from your SkySpark selection.</div>';
+  tableWrap.appendChild(placeholder);
 };
 
 // ── Filtering ───────────────────────────────────────────────────────────
