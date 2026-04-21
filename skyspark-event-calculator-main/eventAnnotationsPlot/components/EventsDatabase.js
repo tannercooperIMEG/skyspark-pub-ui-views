@@ -382,16 +382,23 @@ window.EventAnnotationsPlot.eventsDatabase.applyFilters = function(dbState) {
       if (id.indexOf(f.idSearch) === -1) return false;
     }
 
-    // Date start
-    if (f.dateStart) {
+    // Date filters use overlap logic: show events that touch the range at all
+    // (an event that starts before dateStart but ends after it is included)
+    if (f.dateStart || f.dateEnd) {
       var evtStart = evt.eventStart ? new Date(evt.eventStart) : null;
-      if (!evtStart || evtStart < new Date(f.dateStart)) return false;
-    }
-
-    // Date end
-    if (f.dateEnd) {
       var evtEnd = evt.eventEnd ? new Date(evt.eventEnd) : null;
-      if (!evtEnd || evtEnd > new Date(f.dateEnd + 'T23:59:59')) return false;
+      if (!evtStart && !evtEnd) return false;
+
+      if (f.dateEnd) {
+        var rangeEnd = new Date(f.dateEnd + 'T23:59:59');
+        var checkStart = evtStart || evtEnd;
+        if (checkStart > rangeEnd) return false;
+      }
+      if (f.dateStart) {
+        var rangeStart = new Date(f.dateStart);
+        var checkEnd = evtEnd || evtStart;
+        if (checkEnd < rangeStart) return false;
+      }
     }
 
     // Sqft min
