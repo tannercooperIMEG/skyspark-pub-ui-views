@@ -113,7 +113,15 @@ window.EventAnnotationsPlot.eventsDatabase.openPanel = function(mainContainer, s
   tablePanel.className = 'edb-table-panel';
   content.appendChild(tablePanel);
 
-  // Filter bar
+  // ── Pre-populate date filters with SkySpark date range ────────────
+  if (state._startDate && !dbState.filters.dateStart) {
+    dbState.filters.dateStart = state._startDate;
+  }
+  if (state._endDate && !dbState.filters.dateEnd) {
+    dbState.filters.dateEnd = state._endDate;
+  }
+
+  // Filter bar (date inputs will pick up pre-populated values)
   edb.buildFilterBar(tablePanel, dbState, function() {
     edb._refresh(tablePanel, dbState);
   });
@@ -140,13 +148,8 @@ window.EventAnnotationsPlot.eventsDatabase.openPanel = function(mainContainer, s
   edb._renderSummaryPlaceholder(summaryPanel);
 
   // ── Load data ─────────────────────────────────────────────────────
-  if (dbState.allEvents.length > 0) {
-    // Data already loaded — just render
-    edb.applyFilters(dbState);
-    edb._refresh(tablePanel, dbState);
-  } else {
-    edb._loadData(tablePanel, dbState);
-  }
+  dbState.allEvents = [];
+  edb._loadData(tablePanel, dbState);
 };
 
 // ── Close Panel ─────────────────────────────────────────────────────────
@@ -154,6 +157,17 @@ window.EventAnnotationsPlot.eventsDatabase.openPanel = function(mainContainer, s
 window.EventAnnotationsPlot.eventsDatabase.closePanel = function(mainContainer, state) {
   var dbState = state.eventsDatabaseState;
   dbState.isOpen = false;
+
+  // Clear cached data so next open fetches fresh
+  dbState.allEvents = [];
+  dbState.filteredEvents = [];
+  dbState._loadedDateStart = null;
+  dbState._loadedDateEnd = null;
+  dbState._filterInputs = null;
+
+  // Reset date filters so next open re-reads SkySpark dates
+  dbState.filters.dateStart = '';
+  dbState.filters.dateEnd = '';
 
   // Restore saved content
   mainContainer.innerHTML = '';
@@ -186,20 +200,10 @@ window.EventAnnotationsPlot.eventsDatabase._loadData = function(tablePanel, dbSt
   loading.appendChild(loadText);
   tableWrap.appendChild(loading);
 
-  // Use the same data the chart view uses (stored on state directly)
   var siteRef = state._selectedSite;
-  var startDate = state._startDate;
-  var endDate = state._endDate;
+  var startDate = dbState.filters.dateStart || state._startDate;
+  var endDate = dbState.filters.dateEnd || state._endDate;
 
-  // If site/date refs aren't stored, try from rawExecSummaryEvents
-  if (state.rawExecSummaryEvents && state.rawExecSummaryEvents.length > 0) {
-    dbState.allEvents = state.rawExecSummaryEvents.slice();
-    edb.applyFilters(dbState);
-    edb._refresh(tablePanel, dbState);
-    return;
-  }
-
-  // Fallback: fetch fresh via API
   if (!siteRef || !startDate || !endDate) {
     // Can't fetch without parameters — show empty state
     tableWrap.innerHTML = '';
@@ -211,6 +215,9 @@ window.EventAnnotationsPlot.eventsDatabase._loadData = function(tablePanel, dbSt
     tableWrap.appendChild(emptyDiv);
     return;
   }
+
+  dbState._loadedDateStart = startDate;
+  dbState._loadedDateEnd = endDate;
 
   api.loadExecSummary(siteRef, startDate, endDate)
     .then(function(result) {
@@ -238,6 +245,9 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
 
   var filters = dbState.filters;
 
+  // Reference to the table panel for re-fetching on date changes
+  var tablePanel = parent;
+
   // Helper to create a filter group
   function makeGroup(label, type, key, placeholder) {
     var group = document.createElement('div');
@@ -258,6 +268,8 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
       input.value = filters[key];
     }
 
+    var isDateField = (key === 'dateStart' || key === 'dateEnd');
+
     var handler = edb._debounce(function() {
       if (type === 'number') {
         filters[key] = input.value === '' ? null : parseFloat(input.value);
@@ -265,8 +277,19 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
         filters[key] = input.value;
       }
       dbState.currentPage = 1;
+
+      if (isDateField) {
+        var newStart = filters.dateStart || window.EventAnnotationsPlot.state._startDate;
+        var newEnd = filters.dateEnd || window.EventAnnotationsPlot.state._endDate;
+        if (newStart !== dbState._loadedDateStart || newEnd !== dbState._loadedDateEnd) {
+          dbState.allEvents = [];
+          edb._loadData(tablePanel, dbState);
+          return;
+        }
+      }
+
       onFilterChange();
-    }, type === 'text' ? 300 : 0);
+    }, isDateField ? 500 : (type === 'text' ? 300 : 0));
 
     input.addEventListener('input', handler);
     if (type === 'date') {
@@ -299,10 +322,15 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
   clearBtn.className = 'edb-clear-btn';
   clearBtn.textContent = 'Clear Filters';
   clearBtn.onclick = function() {
+    // Reset dates to SkySpark defaults
+    var st = window.EventAnnotationsPlot.state;
+    var defaultStart = st._startDate || '';
+    var defaultEnd = st._endDate || '';
+
     filters.nameSearch = '';
     filters.idSearch = '';
-    filters.dateStart = '';
-    filters.dateEnd = '';
+    filters.dateStart = defaultStart;
+    filters.dateEnd = defaultEnd;
     filters.sqftMin = null;
     filters.sqftMax = null;
     filters.costMin = null;
@@ -311,12 +339,24 @@ window.EventAnnotationsPlot.eventsDatabase.buildFilterBar = function(parent, dbS
     // Reset inputs
     if (dbState._filterInputs) {
       dbState._filterInputs.forEach(function(ref) {
-        ref.input.value = '';
+        if (ref.key === 'dateStart') {
+          ref.input.value = defaultStart;
+        } else if (ref.key === 'dateEnd') {
+          ref.input.value = defaultEnd;
+        } else {
+          ref.input.value = '';
+        }
       });
     }
 
     dbState.currentPage = 1;
-    onFilterChange();
+    // Re-fetch if date range changed
+    if (defaultStart !== dbState._loadedDateStart || defaultEnd !== dbState._loadedDateEnd) {
+      dbState.allEvents = [];
+      edb._loadData(tablePanel, dbState);
+    } else {
+      onFilterChange();
+    }
   };
   clearGroup.appendChild(clearBtn);
   bar.appendChild(clearGroup);
