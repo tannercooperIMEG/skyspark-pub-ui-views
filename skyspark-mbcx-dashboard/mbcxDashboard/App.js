@@ -41,6 +41,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
     CUP:           window.mbcxDashboard.components.CUP,
     AHU:           window.mbcxDashboard.components.AHU,
     TerminalUnits: window.mbcxDashboard.components.TerminalUnits,
+    FaultList:     window.mbcxDashboard.components.FaultList,
     Footer:        window.mbcxDashboard.components.Footer
   };
 
@@ -54,6 +55,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
         CUP:           window.mbcxDashboard.components.CUP,
         AHU:           window.mbcxDashboard.components.AHU,
         TerminalUnits: window.mbcxDashboard.components.TerminalUnits,
+        FaultList:     window.mbcxDashboard.components.FaultList,
         Footer:        window.mbcxDashboard.components.Footer
       };
 
@@ -66,6 +68,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
         '<div class="dash-title-bar">',
         '  <div class="dash-title-site" id="mbcxDashTitleSite">' + (ctx && ctx.siteName ? ctx.siteName : 'Loading\u2026') + '</div>',
         dateStr ? '<div class="dash-title-dates">' + dateStr + '</div>' : '',
+        '  <a class="dash-title-link" href="/ui/mbcxTrendingView" target="_blank">Trends \u2192</a>',
         '</div>',
         '<div class="page">',
         co.HealthBanner.render(data),
@@ -73,6 +76,7 @@ window.mbcxDashboard = window.mbcxDashboard || {};
         co.CUP.render(data),
         co.AHU.render(data),
         co.TerminalUnits.render(),
+        co.FaultList.render(),
         '</div>'
       ].join('\n');
 
@@ -84,6 +88,9 @@ window.mbcxDashboard = window.mbcxDashboard || {};
 
       // Initialize Terminal Units charts (demo data)
       co.TerminalUnits.initLive(container, ctx || null);
+
+      // Initialize Fault List with demo faults
+      co.FaultList.initLive(container, ctx || null);
     }
   };
 

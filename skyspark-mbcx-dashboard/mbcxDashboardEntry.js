@@ -23,7 +23,9 @@ var mbcxDashboardHandler = {};
     { src: 'components/BuildingMeters.js' },
     { src: 'components/CUP.js' },
     { src: 'components/AHU.js' },
+    { src: 'components/ReheatScatter.js' },
     { src: 'components/TerminalUnits.js' },
+    { src: 'components/FaultList.js' },
     { src: 'components/Footer.js' },
     { src: 'App.js' },
     { src: 'mbcxDashboardUI.js' }

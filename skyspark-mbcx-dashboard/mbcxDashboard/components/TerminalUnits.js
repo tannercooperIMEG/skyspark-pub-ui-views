@@ -76,7 +76,11 @@ window.mbcxDashboard.components.TerminalUnits = {
       '    </div>',
 
       '    <div id="tuScatterView" style="display:none;">',
-      '      <div style="position:relative;height:360px;"><canvas id="tuScatterCanvas"></canvas></div>',
+      '      <div class="rs-legend" id="tuScatterLegend"></div>',
+      '      <div class="rs-summary" id="tuScatterSummary"></div>',
+      '      <div style="position:relative;">',
+      '        <svg class="rs-svg" id="tuScatterSvg"></svg>',
+      '      </div>',
       '    </div>',
 
       '  </div>',
@@ -146,10 +150,12 @@ window.mbcxDashboard.components.TerminalUnits = {
       btnScatter.addEventListener('click', function () {
         btnScatter.classList.add('active'); btnTable.classList.remove('active');
         tableView.style.display = 'none'; scatterView.style.display = '';
-        if (!scatterInited && self._state) {
+        if (!scatterInited) {
           scatterInited = true;
           setTimeout(function () {
-            self._initScatter(container.querySelector('#tuScatterCanvas'), self._state.rows, self._state.cols);
+            var rows = self._state ? self._state.rows : null;
+            var cols = self._state ? self._state.cols : null;
+            self._initScatter(container, rows, cols);
           }, 30);
         }
       });
@@ -319,71 +325,35 @@ window.mbcxDashboard.components.TerminalUnits = {
     return rows;
   },
 
-  _initScatter: function (canvas, rows, cols) {
-    if (!canvas || !window.Chart) return;
+  _initScatter: function (container, rows, cols) {
+    var RS = window.mbcxDashboard.components.ReheatScatter;
+    if (!RS) return;
 
-    var xCol    = _tuFindCol(cols, ['zonetemp', 'zone_temp']);
-    var yCol    = _tuFindCol(cols, ['reheat']);
-    var sizeCol = _tuFindCol(cols, ['airflow', 'cfm']);
-    var nameCol = _tuFindCol(cols, ['vav', 'name']);
+    var svgEl  = container.querySelector('#tuScatterSvg');
+    var legEl  = container.querySelector('#tuScatterLegend');
+    var sumEl  = container.querySelector('#tuScatterSummary');
+    if (!svgEl) return;
 
-    if (!xCol || !yCol) {
-      var wrap = canvas.parentElement;
-      if (wrap) wrap.innerHTML = '<div class="tu-loading">Reheat scatter requires zone temp and reheat valve columns.</div>';
-      return;
+    // Tooltip \u2014 appended to body so it isn't clipped by any overflow:hidden ancestor
+    var tipEl = document.getElementById('tuScatterTip');
+    if (!tipEl) {
+      tipEl = document.createElement('div');
+      tipEl.id = 'tuScatterTip';
+      tipEl.className = 'rs-tooltip';
+      document.body.appendChild(tipEl);
     }
 
-    var points = rows.map(function (r) {
-      var rv  = +(r[yCol])  || 0;
-      var rad = sizeCol ? Math.max(5, Math.min(18, (+r[sizeCol] || 0) / 60)) : 7;
-      var bg  = rv >= 60 ? 'rgba(155,35,53,0.80)'
-              : rv >= 20 ? 'rgba(217,119,6,0.75)'
-              :            'rgba(74,111,165,0.60)';
-      return { x: +(r[xCol]) || 0, y: rv, r: rad, name: nameCol ? r[nameCol] : '', bg: bg, row: r };
-    });
+    // Use live data if columns available; otherwise demo
+    var data = null;
+    if (rows && cols) data = RS.fromRows(rows, cols);
+    if (!data || !data.length) data = RS.generateDemo();
 
-    new window.Chart(canvas, {
-      type: 'bubble',
-      data: {
-        datasets: [{
-          label: 'VAVs',
-          data: points.map(function (p) { return { x: p.x, y: p.y, r: p.r }; }),
-          backgroundColor: points.map(function (p) { return p.bg; }),
-          borderColor:     points.map(function (p) { return p.bg.replace(/[\d.]+\)$/, '1)'); }),
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: '#1F2937', titleFont: { size: 12, weight: '600' },
-            bodyFont: { size: 11 }, padding: 10, cornerRadius: 6,
-            callbacks: {
-              title: function (items) { return points[items[0].dataIndex].name || 'VAV'; },
-              label: function (item) {
-                var p = points[item.dataIndex];
-                var lines = ['Zone Temp: ' + p.x + '\u00b0F', 'Reheat Valve: ' + p.y + '%'];
-                if (sizeCol) lines.push('Airflow: ' + (p.row[sizeCol] || '\u2014') + ' CFM');
-                return lines;
-              }
-            }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: 'Zone Temp (\u00b0F)', font: { size: 11 }, color: '#9CA3AF' },
-            ticks: { font: { size: 10 }, color: '#9CA3AF' }, grid: { color: '#F3F4F6' }
-          },
-          y: {
-            min: 0, max: 100,
-            title: { display: true, text: 'Reheat Valve (%)', font: { size: 11 }, color: '#9CA3AF' },
-            ticks: { font: { size: 10 }, color: '#9CA3AF', callback: function (v) { return v + '%'; } },
-            grid: { color: '#F3F4F6' }
-          }
-        }
-      }
-    });
+    // Legend + summary counts
+    if (legEl) legEl.innerHTML = RS.legendHTML();
+    if (sumEl) sumEl.innerHTML = RS.summaryHTML(data);
+
+    var selectedId = null;
+    function redraw() { RS.render(svgEl, tipEl, data, selectedId, function (id) { selectedId = id === selectedId ? null : id; redraw(); }); }
+    redraw();
   }
 };
