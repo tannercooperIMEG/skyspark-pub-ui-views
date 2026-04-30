@@ -22,6 +22,35 @@ var FL_LABELS = { ts:'Timestamp', equip:'Equipment', type:'Type', fault:'Fault',
 
 function _flSevOrder(s) { return s === 'critical' ? 0 : s === 'warning' ? 1 : 2; }
 
+function _flGuessType(equipName) {
+  var s = String(equipName).toUpperCase();
+  if (s.indexOf('AHU') !== -1 || s.indexOf('FCU') !== -1 || s.indexOf('RTU') !== -1 || s.indexOf('MAU') !== -1) return 'AHU';
+  if (s.indexOf('VAV') !== -1 || s.indexOf('TERM') !== -1 || s.indexOf('FPB') !== -1) return 'VAV';
+  if (s.indexOf('CHP') !== -1 || s.indexOf('CHIL') !== -1 || s.indexOf('CUP') !== -1 || s.indexOf('COOL') !== -1 || s.indexOf('BOIL') !== -1 || s.indexOf('HW') !== -1) return 'CUP';
+  return 'Other';
+}
+
+function _flFormatDur(v) {
+  if (typeof v === 'string' && v) return v;
+  if (typeof v === 'number') {
+    var total = Math.round(v);
+    var days = Math.floor(total / 1440);
+    var hrs  = Math.floor((total % 1440) / 60);
+    var mins = total % 60;
+    if (days > 0) return days + 'd ' + hrs + 'h';
+    if (hrs > 0)  return hrs + 'h ' + mins + 'm';
+    return mins + 'm';
+  }
+  return String(v || '');
+}
+
+function _flFindCol(cols, patterns) {
+  for (var i = 0; i < patterns.length; i++)
+    for (var j = 0; j < cols.length; j++)
+      if (cols[j].toLowerCase().indexOf(patterns[i]) !== -1) return cols[j];
+  return null;
+}
+
 window.mbcxDashboard.components.FaultList = {
 
   _state: null,
@@ -108,36 +137,125 @@ window.mbcxDashboard.components.FaultList = {
 
   initLive: function (container, ctx) {
     var self = this;
-    var faults = FL_DEMO_FAULTS;
 
-    /* KPIs */
-    var active = faults.filter(function(f){ return f.status !== 'Acknowledged'; });
-    var set = function(id, v){ var el = container.querySelector('#'+id); if(el) el.textContent = v; };
+    // Wire filter input regardless of data source
+    var filterInput = container.querySelector('#flFilterInput');
+    if (filterInput) {
+      filterInput.addEventListener('input', function () {
+        if (self._state) { self._state.filter = filterInput.value; self._rebuildTbody(container); }
+      });
+    }
+
+    if (ctx && ctx.attestKey && ctx.siteRef) {
+      // Loading state
+      var tbody = container.querySelector('#flTbody');
+      var thead = container.querySelector('#flThead');
+      if (thead) thead.innerHTML = '';
+      if (tbody) tbody.innerHTML = '<tr><td style="padding:24px;color:#9CA3AF;font-size:12px;text-align:center;">Loading faults…</td></tr>';
+      this._fetchLive(container, ctx);
+    } else {
+      this._populate(container, FL_DEMO_FAULTS);
+    }
+  },
+
+  _populate: function (container, faults) {
+    var active = faults.filter(function (f) { return f.status !== 'Acknowledged'; });
+    var set = function (id, v) { var el = container.querySelector('#' + id); if (el) el.textContent = v; };
     set('flKpiTotal',    active.length);
-    set('flKpiCritical', active.filter(function(f){ return f.sev==='critical'; }).length);
-    set('flKpiWarning',  active.filter(function(f){ return f.sev==='warning';  }).length);
-    set('flKpiAhu',      active.filter(function(f){ return f.type==='AHU'; }).length);
-    set('flKpiVav',      active.filter(function(f){ return f.type==='VAV'; }).length);
-    set('flKpiAck',      faults.filter(function(f){ return f.status==='Acknowledged'; }).length);
-    set('flMeta',        active.length + ' active faults · ' + faults.filter(function(f){ return f.sev==='critical'; }).length + ' critical');
+    set('flKpiCritical', active.filter(function (f) { return f.sev === 'critical'; }).length);
+    set('flKpiWarning',  active.filter(function (f) { return f.sev === 'warning';  }).length);
+    set('flKpiAhu',      active.filter(function (f) { return f.type === 'AHU';     }).length);
+    set('flKpiVav',      active.filter(function (f) { return f.type === 'VAV';     }).length);
+    set('flKpiAck',      faults.filter(function (f) { return f.status === 'Acknowledged'; }).length);
+    set('flMeta',        active.length + ' active faults · ' + faults.filter(function (f) { return f.sev === 'critical'; }).length + ' critical');
 
-    /* Sort by severity then timestamp by default */
-    var sorted = faults.slice().sort(function(a,b){
+    var sorted = faults.slice().sort(function (a, b) {
       var sd = _flSevOrder(a.sev) - _flSevOrder(b.sev);
       return sd !== 0 ? sd : b.ts.localeCompare(a.ts);
     });
     this._state = { rows: sorted, sortCol: null, sortDir: 1, filter: '' };
-
     this._buildTable(container);
+  },
 
-    /* Filter */
-    var filterInput = container.querySelector('#flFilterInput');
-    if (filterInput) {
-      filterInput.addEventListener('input', function(){
-        self._state.filter = filterInput.value;
-        self._rebuildTbody(container);
+  _fetchLive: function (container, ctx) {
+    var self = this;
+    var API  = window.mbcxDashboard.api;
+    var HP   = window.mbcxDashboard.haystackParser;
+
+    var dateArg = (ctx.datesStart && ctx.datesEnd)
+      ? ctx.datesStart + '..' + ctx.datesEnd
+      : 'today()';
+    var axon = 'view_MBCxReport_CustomerView_Output(' +
+      ctx.siteRef + ', ' + dateArg +
+      ', 10%, @nav:rule.all, "Fault List", null, "Show All")';
+
+    API.evalAxon(ctx.attestKey, ctx.projectName, axon)
+      .then(function (grid) {
+        var parsed = HP.parseGrid(grid);
+        console.log('[FaultList] Live cols:', parsed.cols);
+        if (!parsed.rows.length) {
+          var tbody = container.querySelector('#flTbody');
+          if (tbody) tbody.innerHTML = '<tr><td style="padding:24px;color:#9CA3AF;font-size:12px;text-align:center;">No faults returned for this site and date range.</td></tr>';
+          return;
+        }
+        self._populate(container, self._mapLiveRows(parsed.rows, parsed.cols));
+      })
+      .catch(function (err) {
+        console.error('[FaultList] Live fetch failed:', err);
+        var tbody = container.querySelector('#flTbody');
+        if (tbody) tbody.innerHTML = '<tr><td style="padding:24px;color:#9B2335;font-size:12px;text-align:center;">Failed to load faults — ' + (err && err.message ? err.message : 'see console') + '</td></tr>';
       });
-    }
+  },
+
+  _mapLiveRows: function (rows, cols) {
+    var tsCol     = _flFindCol(cols, ['ts', 'start', 'time', 'date']);
+    var equipCol  = _flFindCol(cols, ['equip', 'dis', 'target', 'name', 'ref']);
+    var typeCol   = _flFindCol(cols, ['equiptype', 'type', 'kind']);
+    var faultCol  = _flFindCol(cols, ['fault', 'rule', 'msg', 'desc', 'detail', 'issue']);
+    var sevCol    = _flFindCol(cols, ['sev', 'severity', 'priority', 'level', 'rank']);
+    var durCol    = _flFindCol(cols, ['dur', 'duration', 'elapsed', 'age']);
+    var statusCol = _flFindCol(cols, ['status', 'state', 'ack']);
+
+    return rows.map(function (r, i) {
+      function strVal(col) {
+        if (!col) return '';
+        var v = r[col];
+        if (v === null || v === undefined) return '';
+        if (typeof v === 'object' && v.dis) return v.dis;
+        if (typeof v === 'object' && v.id)  return v.id;
+        return String(v);
+      }
+
+      var equip  = equipCol ? strVal(equipCol) : ('Unit-' + (i + 1));
+      var rawSev = sevCol ? r[sevCol] : null;
+      var rawSta = statusCol ? r[statusCol] : null;
+
+      var sev = 'warning';
+      if (rawSev !== null && rawSev !== undefined) {
+        var ss = String(rawSev).toLowerCase();
+        if (ss.indexOf('crit') !== -1 || ss === '1' || ss === 'high') sev = 'critical';
+      }
+
+      var status = 'Active';
+      if (rawSta !== null && rawSta !== undefined) {
+        var st = String(rawSta).toLowerCase();
+        if (st.indexOf('ack') !== -1 || st.indexOf('clos') !== -1 || st === 'resolved') status = 'Acknowledged';
+      }
+
+      var type = typeCol ? strVal(typeCol) : _flGuessType(equip);
+      if (!type) type = _flGuessType(equip);
+
+      return {
+        id:     i,
+        ts:     tsCol    ? strVal(tsCol)    : '',
+        equip:  equip,
+        type:   type,
+        fault:  faultCol ? strVal(faultCol) : strVal(cols[0]),
+        sev:    sev,
+        dur:    durCol   ? _flFormatDur(r[durCol]) : '',
+        status: status
+      };
+    });
   },
 
   _buildTable: function (container) {
@@ -162,6 +280,7 @@ window.mbcxDashboard.components.FaultList = {
   },
 
   _rebuildTbody: function (container) {
+    if (!this._state) return;
     var s = this._state;
     var rows = s.rows;
 
