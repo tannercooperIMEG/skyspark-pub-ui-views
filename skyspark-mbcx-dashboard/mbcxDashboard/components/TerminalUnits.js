@@ -385,6 +385,7 @@ window.mbcxDashboard.components.TerminalUnits = {
         ? ctx.datesStart + '..' + ctx.datesEnd
         : 'today()';
       var axon = 'view_reheatReport_pubUI(readAll(vav and siteRef==' + ctx.siteRef + '), ' + dateArg + ')';
+      console.log('[ReheatScatter] Axon:', axon);
 
       API.evalAxon(ctx.attestKey, ctx.projectName, axon)
         .then(function (grid) {

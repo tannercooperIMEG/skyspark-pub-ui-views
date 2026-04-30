@@ -112,6 +112,10 @@ window.mbcxDashboard = window.mbcxDashboard || {};
 
     var ctx = { attestKey: attestKey, projectName: projectName, siteRef: siteRef,
                 datesStart: datesStart, datesEnd: datesEnd, siteName: null };
+    console.log('[mbcxDashboard] ctx:', {
+      hasAttestKey: !!attestKey, projectName: projectName,
+      siteRef: siteRef, datesStart: datesStart, datesEnd: datesEnd
+    });
 
     function launch(data) {
       container.innerHTML = '';

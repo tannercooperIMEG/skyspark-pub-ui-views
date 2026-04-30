@@ -46,6 +46,9 @@ window.mbcxDashboard.api = window.mbcxDashboard.api || {};
     ) {
       var inner = data.rows[0].val;
       if (inner && inner.rows && inner.cols) return inner;
+      // Axon function returned null or a non-grid scalar — treat as empty grid
+      console.warn('[mbcxDashboard] API: function returned null or non-grid value:', inner);
+      return { cols: [], rows: [] };
     }
     return data;
   };

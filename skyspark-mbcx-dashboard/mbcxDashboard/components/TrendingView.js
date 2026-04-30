@@ -352,6 +352,7 @@ window.mbcxDashboard.components = window.mbcxDashboard.components || {};
     var HP  = window.mbcxDashboard.haystackParser;
     var dateArg = (ctx.datesStart && ctx.datesEnd) ? ctx.datesStart + '..' + ctx.datesEnd : 'today()';
     var axon = 'view_cxAppSummary(' + ctx.siteRef + ', ' + dateArg + ', 4, ' + equipId + ', null)';
+    console.log('[TrendingView] History axon:', axon);
 
     API.evalAxon(ctx.attestKey, ctx.projectName, axon)
       .then(function (grid) {
@@ -396,6 +397,7 @@ window.mbcxDashboard.components = window.mbcxDashboard.components || {};
     var HP  = window.mbcxDashboard.haystackParser;
     var dateArg = (ctx.datesStart && ctx.datesEnd) ? ctx.datesStart + '..' + ctx.datesEnd : 'today()';
     var axon = 'view_cxAppSummary(' + ctx.siteRef + ', ' + dateArg + ', 1, null, null)';
+    console.log('[TrendingView] Equip list axon:', axon);
 
     API.evalAxon(ctx.attestKey, ctx.projectName, axon)
       .then(function (grid) {

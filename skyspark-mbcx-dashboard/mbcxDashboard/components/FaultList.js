@@ -188,6 +188,7 @@ window.mbcxDashboard.components.FaultList = {
     var axon = 'view_MBCxReport_CustomerView_Output(' +
       ctx.siteRef + ', ' + dateArg +
       ', 10%, @nav:rule.all, "Fault List", null, "Show All")';
+    console.log('[FaultList] Axon:', axon);
 
     API.evalAxon(ctx.attestKey, ctx.projectName, axon)
       .then(function (grid) {
