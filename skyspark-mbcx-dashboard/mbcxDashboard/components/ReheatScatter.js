@@ -81,6 +81,31 @@ window.mbcxDashboard.components = window.mbcxDashboard.components || {};
       });
     },
 
+    // Map rows from view_reheatReport_pubUI (after HP.parseGrid)
+    fromReheatGrid: function (rows) {
+      return rows.map(function (r, i) {
+        var ref = r.targetRef;
+        var name = (ref && typeof ref === 'object')
+          ? (ref.dis || ref.id || 'VAV-' + (i + 1))
+          : (ref ? String(ref) : 'VAV-' + (i + 1));
+
+        var rawDat = r.vav_SupplyAirTemperature;
+        var rawRh  = r.vav_HeatingValveOutput;
+        var dat = typeof rawDat === 'number' ? rawDat
+                : (rawDat && rawDat.val !== undefined) ? parseFloat(rawDat.val) : parseFloat(rawDat);
+        var rh  = typeof rawRh  === 'number' ? rawRh
+                : (rawRh  && rawRh.val  !== undefined) ? parseFloat(rawRh.val)  : parseFloat(rawRh);
+        var sensorErr = isNaN(dat) || isNaN(rh) || dat === null || rh === null;
+        return {
+          id:   i,
+          name: name,
+          dat:  sensorErr ? null : Math.round(dat * 10) / 10,
+          rh:   sensorErr ? null : Math.round(rh),
+          flag: sensorErr ? 'sensor' : classify(dat, rh)
+        };
+      });
+    },
+
     // Renders legend row HTML
     legendHTML: function () {
       return [

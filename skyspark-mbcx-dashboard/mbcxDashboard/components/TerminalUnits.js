@@ -152,11 +152,7 @@ window.mbcxDashboard.components.TerminalUnits = {
         tableView.style.display = 'none'; scatterView.style.display = '';
         if (!scatterInited) {
           scatterInited = true;
-          setTimeout(function () {
-            var rows = self._state ? self._state.rows : null;
-            var cols = self._state ? self._state.cols : null;
-            self._initScatter(container, rows, cols);
-          }, 30);
+          setTimeout(function () { self._initScatter(container, ctx); }, 30);
         }
       });
     }
@@ -325,16 +321,19 @@ window.mbcxDashboard.components.TerminalUnits = {
     return rows;
   },
 
-  _initScatter: function (container, rows, cols) {
-    var RS = window.mbcxDashboard.components.ReheatScatter;
+  _initScatter: function (container, ctx) {
+    var RS  = window.mbcxDashboard.components.ReheatScatter;
+    var API = window.mbcxDashboard.api;
+    var HP  = window.mbcxDashboard.haystackParser;
     if (!RS) return;
 
     var svgEl  = container.querySelector('#tuScatterSvg');
     var legEl  = container.querySelector('#tuScatterLegend');
     var sumEl  = container.querySelector('#tuScatterSummary');
+    var viewEl = container.querySelector('#tuScatterView');
     if (!svgEl) return;
 
-    // Tooltip \u2014 appended to body so it isn't clipped by any overflow:hidden ancestor
+    // Tooltip appended to body so it isn't clipped by any overflow:hidden ancestor
     var tipEl = document.getElementById('tuScatterTip');
     if (!tipEl) {
       tipEl = document.createElement('div');
@@ -343,17 +342,66 @@ window.mbcxDashboard.components.TerminalUnits = {
       document.body.appendChild(tipEl);
     }
 
-    // Use live data if columns available; otherwise demo
-    var data = null;
-    if (rows && cols) data = RS.fromRows(rows, cols);
-    if (!data || !data.length) data = RS.generateDemo();
+    function renderData(data) {
+      if (legEl) legEl.innerHTML = RS.legendHTML();
+      if (sumEl) sumEl.innerHTML = RS.summaryHTML(data);
+      var selectedId = null;
+      function redraw() {
+        RS.render(svgEl, tipEl, data, selectedId, function (id) {
+          selectedId = id === selectedId ? null : id;
+          redraw();
+        });
+      }
+      redraw();
+    }
 
-    // Legend + summary counts
-    if (legEl) legEl.innerHTML = RS.legendHTML();
-    if (sumEl) sumEl.innerHTML = RS.summaryHTML(data);
+    function showError(msg) {
+      if (legEl) legEl.innerHTML = '';
+      if (sumEl) sumEl.innerHTML = '';
+      svgEl.innerHTML = '';
+      if (viewEl) {
+        var errDiv = viewEl.querySelector('.rs-error-screen');
+        if (!errDiv) { errDiv = document.createElement('div'); errDiv.className = 'rs-error-screen'; viewEl.appendChild(errDiv); }
+        errDiv.innerHTML =
+          '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#9B2335" stroke-width="1.5">' +
+          '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1" fill="#9B2335"/></svg>' +
+          '<div class="rs-error-title">Unable to Load Reheat Data</div>' +
+          '<div class="rs-error-msg">' + msg + '</div>';
+      }
+    }
 
-    var selectedId = null;
-    function redraw() { RS.render(svgEl, tipEl, data, selectedId, function (id) { selectedId = id === selectedId ? null : id; redraw(); }); }
-    redraw();
+    function clearError() {
+      if (viewEl) { var e = viewEl.querySelector('.rs-error-screen'); if (e) e.remove(); }
+    }
+
+    if (ctx && ctx.attestKey && ctx.siteRef) {
+      // Loading state
+      clearError();
+      if (legEl) legEl.innerHTML = '<span style="color:#9CA3AF;font-size:12px">Loading\u2026</span>';
+      if (sumEl) sumEl.innerHTML = '';
+      svgEl.innerHTML = '';
+
+      var dateArg = (ctx.datesStart && ctx.datesEnd)
+        ? ctx.datesStart + '..' + ctx.datesEnd
+        : 'today()';
+      var axon = 'view_reheatReport_pubUI(readAll(vav and siteRef==' + ctx.siteRef + '), ' + dateArg + ')';
+
+      API.evalAxon(ctx.attestKey, ctx.projectName, axon)
+        .then(function (grid) {
+          var parsed = HP.parseGrid(grid);
+          if (!parsed.rows.length) {
+            showError('No reheat data returned for this site and date range.');
+            return;
+          }
+          clearError();
+          renderData(RS.fromReheatGrid(parsed.rows));
+        })
+        .catch(function (err) {
+          console.error('[TU] Reheat scatter fetch failed:', err);
+          showError(err && err.message ? err.message : 'Failed to load reheat data. Check console for details.');
+        });
+    } else {
+      renderData(RS.generateDemo());
+    }
   }
 };
